@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Ski.Dive.Dev.FastSets
 {
-    interface IMutableFastSet<T> where T : IEquatable<T>
+    public interface IMutableFastSet<T> : IReadOnlyFastSet<T> where T : IEquatable<T>
     {
         /// <summary>
         /// Sets the name of the set to the given <paramref name="setName"/>.
@@ -21,11 +21,11 @@ namespace Ski.Dive.Dev.FastSets
         /// <summary>
         /// Adds the given <paramref name="member"/> to the set.
         /// </summary>
-        IMutableFastSet<T> Add(T member);
+        new IMutableFastSet<T> Add(T member);
 
         /// <summary>
         /// Removes the given <paramref name="member"/> from the set.
         /// </summary>
-        IMutableFastSet<T> Remove(T member);
+        new IMutableFastSet<T> Remove(T member);
     }
 }
