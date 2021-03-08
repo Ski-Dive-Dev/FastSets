@@ -37,7 +37,7 @@ namespace Ski.Dive.Dev.FastSets
         private void InitMembership(ulong[] presetMembership)
         {
             var minNumMembershipElementsRequired = (int)Math.Max(1,
-                Math.Ceiling((double)_superSet.NumberOfMembers / numBitsInMembershipElement));
+                Math.Ceiling((double)_superSet.PopulationSize / numBitsInMembershipElement));
 
             if (presetMembership != null && presetMembership.Length < minNumMembershipElementsRequired)
             {
@@ -46,7 +46,7 @@ namespace Ski.Dive.Dev.FastSets
             }
 
             _membership = presetMembership ?? new ulong[minNumMembershipElementsRequired];
-            AddCapacity(_superSet.NumberOfMembers - NumElementsInUse);
+            AddCapacity(_superSet.PopulationSize - NumElementsInUse);
         }
 
 
@@ -200,7 +200,7 @@ namespace Ski.Dive.Dev.FastSets
                 }
             }
 
-            var numMembersInLastElement = _superSet.NumberOfMembers % numBitsInMembershipElement;
+            var numMembersInLastElement = _superSet.PopulationSize % numBitsInMembershipElement;
             var lastElementValueWhenAllMembersSet = (ulong)((1 << numMembersInLastElement) - 1);
             return (_membership[_lastUsedIndexInMembership] == lastElementValueWhenAllMembersSet);
         }
@@ -330,16 +330,16 @@ namespace Ski.Dive.Dev.FastSets
             var numMembersDecoded_max = littleEndianMembershipBytes.Length * numBitsPerByte;
 
             var decodedMembershipIsMoreThan7MembersLargerThanSuperSetMembership =
-                (numMembersDecoded_max > _superSet.NumberOfMembers + numBitsPerByte - 1);
+                (numMembersDecoded_max > _superSet.PopulationSize + numBitsPerByte - 1);
             if (decodedMembershipIsMoreThan7MembersLargerThanSuperSetMembership
-                || numMembersDecoded_max < _superSet.NumberOfMembers)
+                || numMembersDecoded_max < _superSet.PopulationSize)
             {
                 throw new ArgumentOutOfRangeException(
                     "The given Base-64 encoded string is not compatible with the SuperSet.");
             }
 
             var numElementsRequired =
-                IntegerCeilingDivision(_superSet.NumberOfMembers, numBitsInMembershipElement);
+                IntegerCeilingDivision(_superSet.PopulationSize, numBitsInMembershipElement);
 
             var presetMembership = new ulong[numElementsRequired];
 

@@ -15,7 +15,7 @@ namespace Ski.Dive.Dev.FastSets
         IList<T> Population { get; }
 
         IDictionary<string, IReadOnlyFastSet<T>> Sets { get; }
-        int NumberOfMembers { get; }
+        int PopulationSize { get; }
 
         ISuperSet<T> AddMember(T member); // If member already exists, but is deleted, removes member from _deletedMembers set.
 
