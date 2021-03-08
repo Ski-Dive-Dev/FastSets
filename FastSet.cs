@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Ski.Dive.Dev.FastSets
+namespace SkiDiveDev.FastSets
 {
     class FastSet<T> : EqualityComparer<T>, IReadOnlyFastSet<T>, IMutableFastSet<T> where T : IEquatable<T>
     {

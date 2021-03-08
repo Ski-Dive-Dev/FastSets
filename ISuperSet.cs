@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Ski.Dive.Dev.FastSets
+namespace SkiDiveDev.FastSets
 {
     /// <summary>
     /// 

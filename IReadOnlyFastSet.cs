@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace Ski.Dive.Dev.FastSets
+namespace SkiDiveDev.FastSets
 {
     /// <summary>
     /// Describes a collection suitable for set theory operations.
