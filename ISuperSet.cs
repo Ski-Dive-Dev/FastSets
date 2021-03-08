@@ -8,9 +8,9 @@ namespace Ski.Dive.Dev.FastSets
     /// 
     /// </summary>
     /// <typeparam name="T">The type of the members.</typeparam>
-    interface ISuperSet<T> where T: IEquatable<T>
+    public interface ISuperSet<T> where T : IEquatable<T>
     {
-        string Description { get;  }
+        string Description { get; }
 
         IList<T> Population { get; }
 
@@ -18,17 +18,12 @@ namespace Ski.Dive.Dev.FastSets
         int NumberOfMembers { get; }
 
         ISuperSet<T> AddMember(T member); // If member already exists, but is deleted, removes member from _deletedMembers set.
-        //private void AddMembers(IEnumerable<T> membersToAdd)
-        //{
-        //    var newMembersToAdd = _superSet.Population.Except(membersToAdd);        // No duplicates
-        //    var numNewMembers = newMembersToAdd.Count();
-        //    AddCapacity(numNewMembers);
-        //}
+
         ISuperSet<T> RemoveMember(T member);
 
         bool Contains(T member);
 
-        ISuperSet<T> AddSet(IReadOnlyFastSet<T> set);
+        ISuperSet<T> AddSet(IMutableFastSet<T> set);
         ISuperSet<T> RemoveSet(IReadOnlyFastSet<T> set);
 
         /// <summary>
