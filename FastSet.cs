@@ -63,7 +63,10 @@ namespace Ski.Dive.Dev.FastSets
         public string Name { get; private set; }
 
 
-        public IMutableFastSet<T> SetName(string setName)
+        /// <summary>
+        /// A one-time chance to set the name of the set outside of the constructor.
+        /// </summary>
+        public IReadOnlyFastSet<T> SetName(string setName)
         {
             Name = setName;
             return this;
