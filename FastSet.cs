@@ -194,10 +194,11 @@ namespace Ski.Dive.Dev.FastSets
 
         public bool All()
         {
-            // TODO: Incorporate _superSet.DeletedMembersSet
+            var activeMembers = _superSet.ToUlongArray();
+
             for (var i = 0; i < _lastUsedIndexInMembership; i++)
             {
-                if ((_membership[i] & GetActiveMembersAtIndex(i)) != ulong.MaxValue)
+                if ((_membership[i] & activeMembers[i]) != ulong.MaxValue)
                 {
                     return false;
                 }
@@ -211,11 +212,12 @@ namespace Ski.Dive.Dev.FastSets
 
         public bool Any()
         {
-            // TODO: Incorporate _superSet.DeletedMembersSet
+            var activeMembers = _superSet.ToUlongArray();
+
             for (var i = 0; i <= _lastUsedIndexInMembership; i++)
             {
                 var thisElement = _membership[i];
-                if (thisElement != 0)
+                if ((thisElement & activeMembers[i]) != 0)
                 {
                     return true;
                 }
@@ -240,11 +242,13 @@ namespace Ski.Dive.Dev.FastSets
         public IReadOnlyFastSet<T> IntersectedWith(IReadOnlyFastSet<T> source)
         {
             var sourceMembership = source.ToUlongArray();
+            var activeMembers = _superSet.ToUlongArray();
+
             var intersectedMembers = new ulong[_membership.Length];
 
             for (var i = 0; i < _membership.Length; i++)
             {
-                intersectedMembers[i] = _membership[i] & sourceMembership[i];
+                intersectedMembers[i] = _membership[i] & activeMembers[i] & sourceMembership[i];
             }
 
 
@@ -257,24 +261,26 @@ namespace Ski.Dive.Dev.FastSets
 
         public IReadOnlyFastSet<T> UnionedWith(string setName)
         {
-            if (!_superSet.Sets.ContainsKey(setName))
+            if (!_superSet.Sets.TryGetValue(setName, out var sourceSet))
             {
                 throw new Exception(
                     $"The given set name, {setName}, does not exist within the enclosing SuperSet.");
             }
 
-            return UnionedWith(_superSet.Sets[setName]);
+            return UnionedWith(sourceSet);
         }
 
 
         public IReadOnlyFastSet<T> UnionedWith(IReadOnlyFastSet<T> source)
         {
             var sourceMembership = source.ToUlongArray();
+            var activeMembers = _superSet.ToUlongArray();
+
             var unionedMembers = new ulong[_membership.Length];
 
             for (var i = 0; i < _membership.Length; i++)
             {
-                unionedMembers[i] = _membership[i] | sourceMembership[i];
+                unionedMembers[i] = _membership[i] & activeMembers[i] | sourceMembership[i];
             }
 
             var newUnionedSetName = GenerateNewSetName("∪", source.Name);
