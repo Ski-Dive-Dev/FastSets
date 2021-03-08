@@ -8,7 +8,7 @@ namespace Ski.Dive.Dev.FastSets
     /// 
     /// </summary>
     /// <typeparam name="T">The type of the members.</typeparam>
-    public interface ISuperSet<T> where T : IEquatable<T>
+    public interface ISuperSet<T> : IReadOnlyFastSet<T> where T : IEquatable<T>
     {
         string Description { get; }
 
@@ -21,14 +21,8 @@ namespace Ski.Dive.Dev.FastSets
 
         ISuperSet<T> RemoveMember(T member);
 
-        bool Contains(T member);
 
         ISuperSet<T> AddSet(IMutableFastSet<T> set);
         ISuperSet<T> RemoveSet(IReadOnlyFastSet<T> set);
-
-        /// <summary>
-        /// Members in the SuperSet Population that are active (not deleted.)
-        /// </summary>
-        IReadOnlyFastSet<T> ActiveMembers { get; }
     }
 }

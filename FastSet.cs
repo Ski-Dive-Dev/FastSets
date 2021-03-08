@@ -52,10 +52,10 @@ namespace Ski.Dive.Dev.FastSets
 
         /// <summary>
         /// Gets the element at the given <paramref name="elementIndex"/> of
-        /// <see cref="ISuperSet{T}.ActiveMembers"/>.
+        /// <see cref="ISuperSet{T}"/>.
         /// </summary>
         private ulong GetActiveMembersAtIndex(int elementIndex) =>
-            _superSet.ActiveMembers.ToUlongArray()[elementIndex];
+            _superSet.ToUlongArray()[elementIndex];
 
         public bool IsReadOnly => false;
 

@@ -1,10 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Ski.Dive.Dev.FastSets
 {
-    public class SuperSet<T> : ISuperSet<T> where T : IEquatable<T>
+    public class SuperSet<T> : ISuperSet<T>, IReadOnlyFastSet<T> where T : IEquatable<T>
     {
         const int numBitsInMembershipElement = 64;
 
@@ -36,8 +37,12 @@ namespace Ski.Dive.Dev.FastSets
 
         public int PopulationSize => Population.Count;
 
-        public IReadOnlyFastSet<T> ActiveMembers => _activeMembers;
 
+        public string Name => _activeMembers.Name;
+
+        public int Count => _activeMembers.Count;
+
+        public bool IsReadOnly => _activeMembers.IsReadOnly;
 
         public ISuperSet<T> AddSet(IMutableFastSet<T> set)
         {
@@ -91,5 +96,37 @@ namespace Ski.Dive.Dev.FastSets
             + (dividend % divisor == 0
             ? 1
             : 0);
+
+
+        public IReadOnlyFastSet<T> IntersectedWith(string setName) => _activeMembers.IntersectedWith(setName);
+        public IReadOnlyFastSet<T> IntersectedWith(IReadOnlyFastSet<T> source)
+            => _activeMembers.IntersectedWith(source);
+        public IReadOnlyFastSet<T> UnionedWith(string setName) => _activeMembers.UnionedWith(setName);
+        public IReadOnlyFastSet<T> UnionedWith(IReadOnlyFastSet<T> source) => _activeMembers.UnionedWith(source);
+        public IReadOnlyFastSet<T> DifferenceFrom(IReadOnlyFastSet<T> source)
+            => _activeMembers.DifferenceFrom(source);
+        public bool All() => _activeMembers.All();
+        public bool Any() => _activeMembers.Any();
+        public string ToBase64() => _activeMembers.ToBase64();
+        public byte[] ToByteArray() => _activeMembers.ToByteArray();
+        public ulong[] ToUlongArray() => _activeMembers.ToUlongArray();
+        public IDictionary<T, bool> ToDictionary() => _activeMembers.ToDictionary();
+        public bool Add(T item) => ((ISet<T>)_activeMembers).Add(item);
+        public void ExceptWith(IEnumerable<T> other) => _activeMembers.ExceptWith(other);
+        public void IntersectWith(IEnumerable<T> other) => _activeMembers.IntersectWith(other);
+        public bool IsProperSubsetOf(IEnumerable<T> other) => _activeMembers.IsProperSubsetOf(other);
+        public bool IsProperSupersetOf(IEnumerable<T> other) => _activeMembers.IsProperSupersetOf(other);
+        public bool IsSubsetOf(IEnumerable<T> other) => _activeMembers.IsSubsetOf(other);
+        public bool IsSupersetOf(IEnumerable<T> other) => _activeMembers.IsSupersetOf(other);
+        public bool Overlaps(IEnumerable<T> other) => _activeMembers.Overlaps(other);
+        public bool SetEquals(IEnumerable<T> other) => _activeMembers.SetEquals(other);
+        public void SymmetricExceptWith(IEnumerable<T> other) => _activeMembers.SymmetricExceptWith(other);
+        public void UnionWith(IEnumerable<T> other) => _activeMembers.UnionWith(other);
+        void ICollection<T>.Add(T item) => ((ICollection<T>)_activeMembers).Add(item);
+        public void Clear() => _activeMembers.Clear();
+        public void CopyTo(T[] array, int arrayIndex) => _activeMembers.CopyTo(array, arrayIndex);
+        public bool Remove(T item) => ((ICollection<T>)_activeMembers).Remove(item);
+        public IEnumerator<T> GetEnumerator() => _activeMembers.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)_activeMembers).GetEnumerator();
     }
 }
