@@ -37,7 +37,7 @@ namespace Ski.Dive.Dev.FastSets
         private void InitMembership(ulong[] presetMembership)
         {
             var minNumMembershipElementsRequired = (int)Math.Max(1,
-                Math.Ceiling((double)_superSet.PopulationSize / numBitsInMembershipElement));
+                IntegerCeilingDivision(_superSet.PopulationSize, numBitsInMembershipElement));
 
             if (presetMembership != null && presetMembership.Length < minNumMembershipElementsRequired)
             {
@@ -370,6 +370,10 @@ namespace Ski.Dive.Dev.FastSets
         public ulong[] ToUlongArray() => _membership;
 
 
+        /// <summary>
+        /// Divides <paramref name="dividend"/> by <paramref name="divisor"/>, and returns the Ceiling of the
+        /// the result.
+        /// </summary>
         private int IntegerCeilingDivision(int dividend, int divisor) => dividend / divisor
                     + (dividend % divisor == 0
                     ? 1
