@@ -9,7 +9,7 @@ namespace Ski.Dive.Dev.FastSets
         /// <summary>
         /// Sets the name of the set to the given <paramref name="setName"/>.
         /// </summary>
-        IMutableFastSet<T> SetName(string setName);
+        IReadOnlyFastSet<T> SetName(string setName);
 
 
         /// <summary>
