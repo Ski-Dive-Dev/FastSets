@@ -228,6 +228,7 @@ namespace SkiDiveDev.FastSets
         {
             var activeMembers = _superSet.ToUlongArray();
 
+            // This method can produce a false-positive if the unused bits in the last element are improperly set.
             for (var i = 0; i <= _lastUsedIndexInMembership; i++)
             {
                 var thisElement = _membership[i];
