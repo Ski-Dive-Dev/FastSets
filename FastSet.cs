@@ -385,8 +385,8 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         private int IntegerCeilingDivision(int dividend, int divisor) => dividend / divisor
                     + (dividend % divisor == 0
-                    ? 1
-                    : 0);
+                    ? 0
+                    : 1);
 
 
         public IDictionary<T, bool> ToDictionary() => throw new NotImplementedException();

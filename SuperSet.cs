@@ -94,8 +94,8 @@ namespace SkiDiveDev.FastSets
 
         private int IntegerCeilingDivision(int dividend, int divisor) => dividend / divisor
             + (dividend % divisor == 0
-            ? 1
-            : 0);
+            ? 0
+            : 1);
 
 
         public IReadOnlyFastSet<T> IntersectedWith(string setName) => _activeMembers.IntersectedWith(setName);
