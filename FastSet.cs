@@ -106,7 +106,7 @@ namespace SkiDiveDev.FastSets
             var memberIndex = GetIndexOfMember(member);
 
             var (elementIndex, bitIndex) = GetElementAndBitIndices(memberIndex);
-            _membership[elementIndex] |= GetBitClearedAtIndex(bitIndex);
+            _membership[elementIndex] &= GetBitClearedAtIndex(bitIndex);
 
             return this;
         }
