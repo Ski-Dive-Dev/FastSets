@@ -15,20 +15,25 @@ namespace SkiDiveDev.FastSets
 
         private ulong[] _membership;
         private int _lastUsedIndexInMembership = 0;
-        private int _lastUsedBitInLastMembershipElement = 0;
+        private int _numBitsUsedInLastElement = 0;
         private readonly ISuperSet<T> _superSet;
 
 
         public FastSet(ISuperSet<T> superSet, string setName, ulong[] presetMembership = null)
         {
-            _superSet = superSet;
+            _superSet = superSet ?? throw new ArgumentNullException(nameof(superSet));
             Name = setName;
             InitMembership(presetMembership);
         }
 
         public FastSet(ISuperSet<T> superSet, string setName, string base64EncodedMembership)
         {
-            _superSet = superSet;
+            if (base64EncodedMembership == null)
+            {
+                throw new ArgumentNullException(nameof(base64EncodedMembership));
+            }
+
+            _superSet = superSet ?? throw new ArgumentNullException(nameof(superSet));
             Name = setName;
             var presetMembership = FromBase64(base64EncodedMembership);
             InitMembership(presetMembership);
@@ -46,7 +51,7 @@ namespace SkiDiveDev.FastSets
             }
 
             _membership = presetMembership ?? new ulong[minNumMembershipElementsRequired];
-            AddCapacity(_superSet.PopulationSize - NumElementsInUse);
+            AddCapacity(_superSet.PopulationSize - NumTrackedMembers);
         }
 
 
@@ -111,6 +116,9 @@ namespace SkiDiveDev.FastSets
         /// An O(n) method to calculate the Hamming weight of a bit array, where n is the total number of bits in
         /// the array.
         /// </summary>
+        /// <remarks>
+        /// Requires that unused bits in the last element be set to zero.
+        /// </remarks>
         public int Count
         {
             get
@@ -131,15 +139,20 @@ namespace SkiDiveDev.FastSets
             }
         }
 
+
+
         /// <summary>
         /// The current member capacity of <see cref="_membership"/>.
         /// </summary>
         private int Capacity => _membership.Length * numBitsInMembershipElement;
 
-        private int NumElementsInUse => _lastUsedIndexInMembership + 1;
+        private int NumElementsInUse => _lastUsedIndexInMembership + (_numBitsUsedInLastElement == 0
+            ? 0
+            : 1);
+
 
         /// <summary>
-        /// Due to 0-based positive indices, there must be at least one tracked member.
+        /// 
         /// </summary>
         /// <remarks>
         /// <para>
@@ -156,7 +169,8 @@ namespace SkiDiveDev.FastSets
         /// </para>
         /// </remarks>
         private int NumTrackedMembers =>
-            _lastUsedIndexInMembership * numBitsInMembershipElement + _lastUsedBitInLastMembershipElement + 1;
+            _lastUsedIndexInMembership * numBitsInMembershipElement + _numBitsUsedInLastElement;
+
 
 
 
@@ -409,9 +423,9 @@ namespace SkiDiveDev.FastSets
         {
             var newTotalCapacity = NumTrackedMembers + numMembersToAdd;
 
-            _lastUsedBitInLastMembershipElement = newTotalCapacity % numBitsInMembershipElement;
+            _numBitsUsedInLastElement = newTotalCapacity % numBitsInMembershipElement;
 
-            _lastUsedIndexInMembership = IntegerCeilingDivision(newTotalCapacity, numBitsInMembershipElement);
+            _lastUsedIndexInMembership = IntegerCeilingDivision(newTotalCapacity, numBitsInMembershipElement) - 1;
 
             ConditionallyExpandMembershipSize();
             return this;
@@ -430,7 +444,7 @@ namespace SkiDiveDev.FastSets
             if (_lastUsedIndexInMembership >= _membership.Length)
             {
                 const double arrayGrowthFactor = 1.2;
-                var newArraySize = (int)(_membership.Length * arrayGrowthFactor);
+                var newArraySize = (int)((_lastUsedIndexInMembership + 1) * arrayGrowthFactor);
                 Array.Resize(ref _membership, newArraySize);
                 return true;
             }
