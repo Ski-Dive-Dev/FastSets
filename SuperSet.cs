@@ -10,13 +10,19 @@ namespace SkiDiveDev.FastSets
         const int numBitsInMembershipElement = 64;
 
         IMutableFastSet<T> _activeMembers;
-        IDictionary<string, IMutableFastSet<T>> sets;
+        readonly IDictionary<string, IMutableFastSet<T>> sets = new Dictionary<string, IMutableFastSet<T>>();
 
         public SuperSet(string description, IEnumerable<T> population)
         {
             Description = description;
             Population = (IList<T>)population;
 
+            var activeMembers = InitActiveMembers();
+            _activeMembers = new FastSet<T>(this, "__activeMembers", activeMembers);
+        }
+
+        private ulong[] InitActiveMembers()
+        {
             var numElementsInUse = IntegerCeilingDivision(Population.Count, numBitsInMembershipElement);
             var activeMembers = new ulong[numElementsInUse];
             for (var i = 0; i < numElementsInUse; i++)
@@ -24,7 +30,11 @@ namespace SkiDiveDev.FastSets
                 const ulong allBitsSet = ulong.MaxValue;
                 activeMembers[i] = allBitsSet;
             }
-            _activeMembers = new FastSet<T>(this, "__activeMembers", activeMembers);
+
+            var numMembersInLastElement = Population.Count % numBitsInMembershipElement;
+            var setAllUsedBits = (ulong)((1 << numMembersInLastElement) - 1);
+            activeMembers[numElementsInUse - 1] = setAllUsedBits;
+            return activeMembers;
         }
 
 
