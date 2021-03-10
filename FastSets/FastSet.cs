@@ -193,7 +193,7 @@ namespace SkiDiveDev.FastSets
             const int fixedNumCharactersToAddToName = 9;                        // "('' X '')".Length
             const int remainingAvailableNumChars = maxNumCharactersInName - fixedNumCharactersToAddToName;
             var numCharactersToTruncate = remainingAvailableNumChars - Name.Length - operandSetName.Length;
-            if (numCharactersToTruncate > 0)
+            if (numCharactersToTruncate < 0)
             {
                 const int numCharactersInEllipsis = 1;                          // "…".Length
                 numCharactersToTruncate += numCharactersInEllipsis;
