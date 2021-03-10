@@ -7,7 +7,7 @@ using System.Text;
 
 namespace SkiDiveDev.FastSets
 {
-    class FastSet<T> : EqualityComparer<T>, IReadOnlyFastSet<T>, IMutableFastSet<T> where T : IEquatable<T>
+    public class FastSet<T> : EqualityComparer<T>, IReadOnlyFastSet<T>, IMutableFastSet<T> where T : IEquatable<T>
     {
         const int numBitsInMembershipElement = 64;
         const int numBitsPerByte = 8;
@@ -176,14 +176,15 @@ namespace SkiDiveDev.FastSets
 
         public bool Contains(T item)
         {
-            if (!_superSet.Contains(item))
+            if (!_superSet.Population.Contains(item))
             {
                 throw new Exception("A Set cannot determine whether it contains an item when its enclosing" +
                     " SuperSet does not contain the item.");
             }
 
             var indexOfItem = GetIndexOfMember(item);
-            return ((_membership[indexOfItem] & GetBitSetAtIndex(indexOfItem)) != 0);
+            var (elementIndex, bitIndex) = GetElementAndBitIndices(indexOfItem);
+            return ((_membership[elementIndex] & GetBitSetAtIndex(indexOfItem)) != 0);
         }
 
         private string GenerateNewSetName(string @operator, string operandSetName)
@@ -453,9 +454,7 @@ namespace SkiDiveDev.FastSets
             return false;
         }
 
-        private int GetIndexOfMember(T member) => _superSet.Population
-            .TakeWhile(m => !m.Equals(member))
-            .Count();
+        private int GetIndexOfMember(T member) => _superSet.Population.IndexOf(member);
 
 
         /// <summary>
