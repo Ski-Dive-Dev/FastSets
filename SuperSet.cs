@@ -12,8 +12,9 @@ namespace SkiDiveDev.FastSets
         IMutableFastSet<T> _activeMembers;
         readonly IDictionary<string, IMutableFastSet<T>> sets = new Dictionary<string, IMutableFastSet<T>>();
 
-        public SuperSet(string description, IEnumerable<T> population)
+        public SuperSet(string name, string description, IEnumerable<T> population)
         {
+            Name = name;
             Description = description;
             Population = (IList<T>)population;
 
@@ -25,7 +26,7 @@ namespace SkiDiveDev.FastSets
         {
             var numElementsInUse = IntegerCeilingDivision(Population.Count, numBitsInMembershipElement);
             var activeMembers = new ulong[numElementsInUse];
-            for (var i = 0; i < numElementsInUse; i++)
+            for (var i = 0; i < numElementsInUse - 1; i++)
             {
                 const ulong allBitsSet = ulong.MaxValue;
                 activeMembers[i] = allBitsSet;
@@ -48,11 +49,7 @@ namespace SkiDiveDev.FastSets
         public int PopulationSize => Population.Count;
 
 
-        public string Name => _activeMembers.Name;
-
-        public int Count => _activeMembers.Count;
-
-        public bool IsReadOnly => _activeMembers.IsReadOnly;
+        public string Name { get; private set; }
 
         public ISuperSet<T> AddSet(IMutableFastSet<T> set)
         {
@@ -106,6 +103,11 @@ namespace SkiDiveDev.FastSets
             + (dividend % divisor == 0
             ? 0
             : 1);
+
+
+        public int Count => _activeMembers.Count;
+
+        public bool IsReadOnly => _activeMembers.IsReadOnly;
 
 
         public IReadOnlyFastSet<T> IntersectedWith(string setName) => _activeMembers.IntersectedWith(setName);
