@@ -72,5 +72,37 @@ namespace SkiDiveDev.FastSets.Test
             var bits = result.ToUlongArray()[0];
             Assert.That(bits, Is.EqualTo(0b0001_1111));
         }
+
+
+        [Test]
+        public void UnionWithVeryLongSetNames_ShouldTruncate()
+        {
+            // Arrange
+            var testSet1Name = new String('A', 125);
+            var testSet1 = new FastSet<string>(_superSet, testSet1Name);
+            testSet1.Add("Allison")
+                .Add("Bobby")
+                .Add("Charlie");
+
+            var testSet2Name = new String('B', 125);
+            var testSet2 = new FastSet<string>(_superSet, testSet2Name);
+            testSet2.Add("Charlie")
+                .Add("Dorothy")
+                .Add("Elaine");
+
+            const int maxNameLength_chars = 255;
+            const int fixedNumCharactersToAddToName = 9;                        // "('' ∪ '')".Length
+            const int remainingAvailableNumChars = maxNameLength_chars - fixedNumCharactersToAddToName;
+            var truncatedTestSet1Name = new String('A', remainingAvailableNumChars - testSet2Name.Length - 1);
+            var expected = $"('…{truncatedTestSet1Name}' ∪ '{testSet2Name}')";
+
+            // Act
+            var unionSet = testSet1.UnionedWith(testSet2);
+            var result = unionSet.Name;
+
+            // Assert
+            Assert.That(expected.Length, Is.EqualTo(maxNameLength_chars));
+            Assert.That(result, Is.EqualTo(expected));
+        }
     }
 }
