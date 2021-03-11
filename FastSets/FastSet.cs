@@ -192,12 +192,12 @@ namespace SkiDiveDev.FastSets
             const int maxNumCharactersInName = 255;
             const int fixedNumCharactersToAddToName = 9;                        // "('' X '')".Length
             const int remainingAvailableNumChars = maxNumCharactersInName - fixedNumCharactersToAddToName;
-            var numCharactersToTruncate = remainingAvailableNumChars - Name.Length - operandSetName.Length;
-            if (numCharactersToTruncate < 0)
+            var numCharactersToTruncate = Name.Length + operandSetName.Length - remainingAvailableNumChars;
+            if (numCharactersToTruncate > 0)
             {
                 const int numCharactersInEllipsis = 1;                          // "…".Length
                 numCharactersToTruncate += numCharactersInEllipsis;
-                var truncatedOriginalName = Name.Substring(Name.Length - numCharactersToTruncate);
+                var truncatedOriginalName = Name.Substring(0, Name.Length - numCharactersToTruncate);
                 return $"('…{truncatedOriginalName}' {@operator} '{operandSetName}')";
             }
             else
