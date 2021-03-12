@@ -23,6 +23,9 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         new IMutableFastSet<T> Add(T member);
 
+        IMutableFastSet<T> Add(ICollection<T> members);
+
+
         /// <summary>
         /// Removes the given <paramref name="member"/> from the set.
         /// </summary>

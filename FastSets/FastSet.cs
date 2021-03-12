@@ -96,6 +96,29 @@ namespace SkiDiveDev.FastSets
         }
 
 
+        public IMutableFastSet<T> Add(ICollection<T> members)
+        {
+            if (Name != "__activeMembers" && !members.All(m => _superSet.Contains(m)))
+            {
+                throw new Exception(
+                    "Cannot add a member to a Set when that member does not exist in its enclosing SuperSet.");
+            }
+
+            AddCapacity(members.Count);
+
+            // TODO: This loop could be removed with a simple mask of consecutive bits (must, however, accommodate
+            // element boundary crossings):
+            foreach (var thisMember in members)
+            {
+                var memberIndex = GetIndexOfMember(thisMember);
+
+                var (elementIndex, bitIndex) = GetElementAndBitIndices(memberIndex);
+                _membership[elementIndex] |= GetBitSetAtIndex(bitIndex);
+            }
+
+            return this;
+        }
+
         public IMutableFastSet<T> Remove(T member)
         {
             if (!_superSet.Contains(member))
