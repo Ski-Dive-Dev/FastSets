@@ -81,11 +81,14 @@ namespace SkiDiveDev.FastSets
 
         public IMutableFastSet<T> Add(T member)
         {
-            if (!_superSet.Contains(member))
+            // Short-circuit note: Name must be checked first or a deadly embrace exists due to circular logic.
+            if (Name != "__activeMembers" && !_superSet.Contains(member))
             {
                 throw new Exception(
                     "Cannot add a member to a Set when that member does not exist in its enclosing SuperSet.");
             }
+
+            AddCapacity(1);
 
             var memberIndex = GetIndexOfMember(member);
 
@@ -199,7 +202,7 @@ namespace SkiDiveDev.FastSets
 
         public bool Contains(T item)
         {
-            if (!_superSet.Population.Contains(item))
+            if (Name != "__activeMembers" && !_superSet.Population.Contains(item))
             {
                 throw new Exception("A Set cannot determine whether it contains an item when its enclosing" +
                     " SuperSet does not contain the item.");
@@ -448,7 +451,7 @@ namespace SkiDiveDev.FastSets
         {
             var newTotalCapacity = NumTrackedMembers + numMembersToAdd;
 
-            _numBitsUsedInLastElement = newTotalCapacity % numBitsInMembershipElement;
+            _numBitsUsedInLastElement = (newTotalCapacity - 1) % numBitsInMembershipElement + 1;
 
             _lastUsedIndexInMembership = IntegerCeilingDivision(newTotalCapacity, numBitsInMembershipElement) - 1;
 

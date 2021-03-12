@@ -10,7 +10,7 @@ namespace SkiDiveDev.FastSets
         const int numBitsInMembershipElement = 64;
 
         IMutableFastSet<T> _activeMembers;
-        readonly IDictionary<string, IMutableFastSet<T>> sets = new Dictionary<string, IMutableFastSet<T>>();
+        readonly IDictionary<string, IMutableFastSet<T>> _sets = new Dictionary<string, IMutableFastSet<T>>();
 
         public SuperSet(string name, string description, IEnumerable<T> population)
         {
@@ -20,6 +20,7 @@ namespace SkiDiveDev.FastSets
 
             var activeMembers = InitActiveMembers();
             _activeMembers = new FastSet<T>(this, "__activeMembers", activeMembers);
+            _sets.Add("__activeMembers", _activeMembers);
         }
 
         private ulong[] InitActiveMembers()
@@ -43,8 +44,7 @@ namespace SkiDiveDev.FastSets
 
         public IList<T> Population { get; private set; }
 
-        public IDictionary<string, IReadOnlyFastSet<T>> Sets { get; private set; }
-            = new Dictionary<string, IReadOnlyFastSet<T>>();
+        public IDictionary<string, IReadOnlyFastSet<T>> Sets => (IDictionary<string, IReadOnlyFastSet<T>>)_sets;
 
         public int PopulationSize => Population.Count;
 
@@ -53,15 +53,15 @@ namespace SkiDiveDev.FastSets
 
         public ISuperSet<T> AddSet(IMutableFastSet<T> set)
         {
-            sets.Add(set.Name, set);
+            _sets.Add(set.Name, set);
             return this;
         }
 
         public ISuperSet<T> RemoveSet(IReadOnlyFastSet<T> set)
         {
-            if (sets.ContainsKey(set.Name))
+            if (_sets.ContainsKey(set.Name))
             {
-                sets.Remove(set.Name);
+                _sets.Remove(set.Name);
                 return this;
             }
             else
@@ -76,17 +76,23 @@ namespace SkiDiveDev.FastSets
 
         public ISuperSet<T> AddMember(T member)
         {
-            if (!Population.Contains(member))
+            if (Population.Contains(member))
             {
-                Population.Add(member);
-                foreach (var set in sets.Values)
-                {
-                    set.AddCapacity(1);
-                }
+                _activeMembers.Add(member);                                     // reactivate
             }
             else
             {
-                _activeMembers.Add(member);                                     // reactivate
+                Population.Add(member);
+                _sets["__activeMembers"].Add(member);
+
+                foreach (var thisSet in _sets.Values)
+                {
+                    if (thisSet.Name != "__activeMembers")
+                    {
+                        // AddCapacity() is faster than set.Add(member).
+                        thisSet.Add(member);
+                    }
+                }
             }
 
             return this;

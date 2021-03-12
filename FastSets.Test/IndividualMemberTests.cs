@@ -82,5 +82,50 @@ namespace SkiDiveDev.FastSets.Test
             // Assert
             Assert.That(result[0], Is.EqualTo(0b101));
         }
+
+
+        [Test]
+        public void When100MembersAdded_ToUlongArrayReturnsCorrectValue()
+        {
+            // Arrange
+            const ulong expected0 = ulong.MaxValue;
+            const ulong expected1 = 0b_0011_11111111_11111111_11111111;
+
+            var testSet = new FastSet<string>(_superSet, "testSet");
+            _superSet.AddSet(testSet);
+
+            var members = new List<string>
+            {
+                "Allison",
+                "Bobby",
+                "Charlie",
+                "Dorothy",
+                "Elaine",
+                "Fester",
+                "Gordan",
+                "Hillary",
+                "Iris",
+                "Jane" };
+            testSet.Add(members);
+
+            for (var i = 10; i < 90; i++)
+            {
+                _superSet.AddMember("Test Member " + i);
+                testSet.Add("Test Member " + i);
+            }
+
+            // Act
+            var result = testSet.ToUlongArray();
+
+            // Assert
+            //var differences = result[1] | expected1;
+            var differences = result[0] | expected0;
+            var differencesWithHighBitTruncated = differences & 0x_7FFFFFFF_FFFFFFFF;
+            var lower63BitsOfDifferences = (long)differencesWithHighBitTruncated;
+            var stringOf63BitDifferences = Convert.ToString(lower63BitsOfDifferences, 2);
+
+            Assert.That(result[0], Is.EqualTo(expected0), "1st 64 members mismatch");
+            Assert.That(result[1], Is.EqualTo(expected1), stringOf63BitDifferences);
+        }
     }
 }
