@@ -31,7 +31,7 @@ namespace SkiDiveDev.FastSets.Test
         public void GivenEmptySet_WhenContainsCalled_ShouldThrowException()
         {
             // Arrange
-            var testSet = new FastSet<string>(_superSet, "testSet");
+            var testSet = _superSet.AddSet("testSet");
 
             // Act/Assert
             Assert.Throws<Exception>(() => testSet.Contains("NOT A MEMBER"));
@@ -42,7 +42,7 @@ namespace SkiDiveDev.FastSets.Test
         public void GivenNonEmptySet_WhenContainsCalledWithNonMember_ShouldReturnFalse()
         {
             // Arrange
-            var testSet = new FastSet<string>(_superSet, "testSet");
+            var testSet = _superSet.AddSet("testSet");
             testSet.Add("Allison");
 
             // Act
@@ -57,7 +57,7 @@ namespace SkiDiveDev.FastSets.Test
         public void GivenNonEmptySet_WhenContainsCalledWithMember_ShouldReturnTrue()
         {
             // Arrange
-            var testSet = new FastSet<string>(_superSet, "testSet");
+            var testSet = _superSet.AddSet("testSet");
             testSet.Add("Allison");
 
             // Act
@@ -72,7 +72,8 @@ namespace SkiDiveDev.FastSets.Test
         public void WhenTwoMembersAdded_ToUlongArrayReturnsCorrectValue()
         {
             // Arrange
-            var testSet = new FastSet<string>(_superSet, "testSet");
+            var testSet = _superSet.AddSet("testSet");
+            
             testSet.Add("Allison")
                 .Add("Charlie");
 
@@ -91,8 +92,7 @@ namespace SkiDiveDev.FastSets.Test
             const ulong expected0 = ulong.MaxValue;
             const ulong expected1 = 0b_0011_11111111_11111111_11111111;
 
-            var testSet = new FastSet<string>(_superSet, "testSet");
-            _superSet.AddSet(testSet);
+            var testSet = _superSet.AddSet("testSet");
 
             var members = new List<string>
             {

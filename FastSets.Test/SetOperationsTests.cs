@@ -32,12 +32,12 @@ namespace SkiDiveDev.FastSets.Test
         public void TestIntersection()
         {
             // Arrange
-            var testSet1 = new FastSet<string>(_superSet, "setA");
+            var testSet1 = _superSet.AddSet("setA");
             testSet1.Add("Allison")
                 .Add("Bobby")
                 .Add("Charlie");
 
-            var testSet2 = new FastSet<string>(_superSet, "setB");
+            var testSet2 = _superSet.AddSet("setB");
             testSet2.Add("Charlie")
                 .Add("Dorothy")
                 .Add("Elaine");
@@ -55,12 +55,12 @@ namespace SkiDiveDev.FastSets.Test
         public void TestUnion()
         {
             // Arrange
-            var testSet1 = new FastSet<string>(_superSet, "setA");
+            var testSet1 = _superSet.AddSet("setA");
             testSet1.Add("Allison")
                 .Add("Bobby")
                 .Add("Charlie");
 
-            var testSet2 = new FastSet<string>(_superSet, "setB");
+            var testSet2 = _superSet.AddSet("setB");
             testSet2.Add("Charlie")
                 .Add("Dorothy")
                 .Add("Elaine");
@@ -79,13 +79,13 @@ namespace SkiDiveDev.FastSets.Test
         {
             // Arrange
             var testSet1Name = new String('A', 125);
-            var testSet1 = new FastSet<string>(_superSet, testSet1Name);
+            var testSet1 = _superSet.AddSet(testSet1Name);
             testSet1.Add("Allison")
                 .Add("Bobby")
                 .Add("Charlie");
 
             var testSet2Name = new String('B', 125);
-            var testSet2 = new FastSet<string>(_superSet, testSet2Name);
+            var testSet2 = _superSet.AddSet(testSet2Name);
             testSet2.Add("Charlie")
                 .Add("Dorothy")
                 .Add("Elaine");

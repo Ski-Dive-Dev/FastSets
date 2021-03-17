@@ -19,14 +19,14 @@ namespace SkiDiveDev.FastSets
         private readonly ISuperSet<T> _superSet;
 
 
-        public FastSet(ISuperSet<T> superSet, string setName, ulong[] presetMembership = null)
+        protected FastSet(ISuperSet<T> superSet, string setName, ulong[] presetMembership = null)
         {
             _superSet = superSet ?? throw new ArgumentNullException(nameof(superSet));
             Name = setName;
             InitMembership(presetMembership);
         }
 
-        public FastSet(ISuperSet<T> superSet, string setName, string base64EncodedMembership)
+        protected FastSet(ISuperSet<T> superSet, string setName, string base64EncodedMembership)
         {
             if (base64EncodedMembership == null)
             {
@@ -38,6 +38,14 @@ namespace SkiDiveDev.FastSets
             var presetMembership = FromBase64(base64EncodedMembership);
             InitMembership(presetMembership);
         }
+
+
+        internal static IMutableFastSet<T> Create(ISuperSet<T> superSet, string setName,
+             ulong[] presetMembership = null) => new FastSet<T>(superSet, setName, presetMembership);
+
+        internal static IMutableFastSet<T> Create(ISuperSet<T> superSet, string setName,
+             string base64EncodedMembership) => new FastSet<T>(superSet, setName, base64EncodedMembership);
+
 
         private void InitMembership(ulong[] presetMembership)
         {

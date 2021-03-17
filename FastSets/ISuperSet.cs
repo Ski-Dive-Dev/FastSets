@@ -22,7 +22,10 @@ namespace SkiDiveDev.FastSets
         ISuperSet<T> RemoveMember(T member);
 
 
-        ISuperSet<T> AddSet(IMutableFastSet<T> set);
+        IMutableFastSet<T> AddSet(string setName, ulong[] presetMembership = null);
+
+        IMutableFastSet<T> AddSet(string setName, string base64EncodedMembership);
+        
         ISuperSet<T> RemoveSet(IReadOnlyFastSet<T> set);
     }
 }

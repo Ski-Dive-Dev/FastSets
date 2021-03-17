@@ -8,8 +8,7 @@ namespace SkiDiveDev.FastSets
     public class SuperSet<T> : ISuperSet<T>, IReadOnlyFastSet<T> where T : IEquatable<T>
     {
         const int numBitsInMembershipElement = 64;
-
-        IMutableFastSet<T> _activeMembers;
+        readonly IMutableFastSet<T> _activeMembers;
         readonly IDictionary<string, IMutableFastSet<T>> _sets = new Dictionary<string, IMutableFastSet<T>>();
 
         public SuperSet(string name, string description, IEnumerable<T> population)
@@ -19,7 +18,7 @@ namespace SkiDiveDev.FastSets
             Population = (IList<T>)population;
 
             var activeMembers = InitActiveMembers();
-            _activeMembers = new FastSet<T>(this, "__activeMembers", activeMembers);
+            _activeMembers = FastSet<T>.Create(this, "__activeMembers", activeMembers);
             _sets.Add("__activeMembers", _activeMembers);
         }
 
@@ -51,11 +50,20 @@ namespace SkiDiveDev.FastSets
 
         public string Name { get; private set; }
 
-        public ISuperSet<T> AddSet(IMutableFastSet<T> set)
+        public IMutableFastSet<T> AddSet(string setName, ulong[] presetMembership = null)
         {
+            var set = FastSet<T>.Create(this, setName, presetMembership);
             _sets.Add(set.Name, set);
-            return this;
+            return set;
         }
+
+        public IMutableFastSet<T> AddSet(string setName, string base64EncodedMembership)
+        {
+            var set = FastSet<T>.Create(this, setName, base64EncodedMembership);
+            _sets.Add(set.Name, set);
+            return set;
+        }
+
 
         public ISuperSet<T> RemoveSet(IReadOnlyFastSet<T> set)
         {
@@ -89,7 +97,6 @@ namespace SkiDiveDev.FastSets
                 {
                     if (thisSet.Name != "__activeMembers")
                     {
-                        // AddCapacity() is faster than set.Add(member).
                         thisSet.Add(member);
                     }
                 }
