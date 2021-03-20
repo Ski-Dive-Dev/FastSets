@@ -103,7 +103,7 @@ namespace SkiDiveDev.FastSets
                     "Cannot add a member to a Set when that member does not exist in its enclosing SuperSet.");
             }
 
-            AddCapacity(1);
+            AddCapacity(_superSet.PopulationSize - NumTrackedMembers);
 
             var memberIndex = GetIndexOfMember(member);
 
@@ -122,7 +122,7 @@ namespace SkiDiveDev.FastSets
                     "Cannot add a member to a Set when that member does not exist in its enclosing SuperSet.");
             }
 
-            AddCapacity(members.Count);
+            AddCapacity(_superSet.PopulationSize - NumTrackedMembers);
 
             // TODO: This loop could be removed with a simple mask of consecutive bits (must, however, accommodate
             // element boundary crossings):
@@ -433,17 +433,22 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         public byte[] ToByteArray()
         {
-            var numBits =
-                (_lastUsedIndexInMembership * numBitsInMembershipElement + _lastUsedIndexInMembership + 1);
+            const int numBytesInMembershipElement = numBitsInMembershipElement / numBitsPerByte;
+
+            var numBits = NumBitsInUse;
+
+            var numBytesInLastElementToCopy =
+                IntegerCeilingDivision(numBits % numBitsInMembershipElement, numBitsPerByte);
 
             var byteArray = new byte[IntegerCeilingDivision(numBits, numBitsPerByte)];
+            var needToConvertToLittleEndian = (!BitConverter.IsLittleEndian);
 
             for (var i = 0; i <= _lastUsedIndexInMembership; i++)
             {
                 var thisElement = _membership[i];
                 var thisElementAsBytes = BitConverter.GetBytes(thisElement);
 
-                if (!BitConverter.IsLittleEndian)
+                if (needToConvertToLittleEndian)
                 {
                     Array.Reverse(thisElementAsBytes);
                 }
@@ -452,8 +457,11 @@ namespace SkiDiveDev.FastSets
                     sourceArray: thisElementAsBytes,
                     sourceIndex: 0,
                     destinationArray: byteArray,
-                    destinationIndex: i * numBitsInMembershipElement,
-                    length: numBitsInMembershipElement / numBitsPerByte);
+                    destinationIndex: i * numBytesInMembershipElement,
+                    length: (i < _lastUsedIndexInMembership)
+                        ? numBitsInMembershipElement / numBitsPerByte
+                        : numBytesInLastElementToCopy
+                );
             }
 
             return byteArray;
@@ -478,17 +486,20 @@ namespace SkiDiveDev.FastSets
                 IntegerCeilingDivision(_superSet.PopulationSize, numBitsInMembershipElement);
 
             var presetMembership = new ulong[numElementsRequired];
-
-            var thisElementBytes = new byte[numBytesPerElement];
+            var numBytesInLastElementToCopy =
+                littleEndianMembershipBytes.Length % numBytesPerElement;
 
             for (var byteIndex = 0; byteIndex < littleEndianMembershipBytes.Length; byteIndex += numBytesPerElement)
             {
+                var thisElementBytes = new byte[numBytesPerElement];
                 Array.Copy(
                     sourceArray: littleEndianMembershipBytes,
-                    sourceIndex: byteIndex * numBytesPerElement,
+                    sourceIndex: byteIndex,
                     destinationArray: thisElementBytes,
                     destinationIndex: 0,
-                    length: numBytesPerElement);
+                    length: byteIndex < littleEndianMembershipBytes.Length - numBytesPerElement
+                        ? numBytesPerElement
+                        : numBytesInLastElementToCopy);
 
                 if (!BitConverter.IsLittleEndian)
                 {
@@ -503,7 +514,18 @@ namespace SkiDiveDev.FastSets
         }
 
 
-        public ulong[] ToUlongArray() => _membership;
+        public ulong[] ToUlongArray()
+        {
+            var activeElements = new ulong[NumElementsInUse];
+            Array.Copy(
+                sourceArray: _membership,
+                sourceIndex: 0,
+                destinationArray: activeElements,
+                destinationIndex: 0,
+                length: NumElementsInUse);
+
+            return activeElements;
+        }
 
 
         /// <summary>
@@ -579,13 +601,17 @@ namespace SkiDiveDev.FastSets
         /// <param name="numMembersToAdd"></param>
         public IMutableFastSet<T> AddCapacity(int numMembersToAdd)
         {
-            var newTotalCapacity = NumTrackedMembers + numMembersToAdd;
+            if (numMembersToAdd > 0)
+            {
+                var newTotalCapacity = NumTrackedMembers + numMembersToAdd;
 
-            _numBitsUsedInLastElement = (newTotalCapacity - 1) % numBitsInMembershipElement + 1;
+                _numBitsUsedInLastElement = (newTotalCapacity - 1) % numBitsInMembershipElement + 1;
 
-            _lastUsedIndexInMembership = IntegerCeilingDivision(newTotalCapacity, numBitsInMembershipElement) - 1;
+                _lastUsedIndexInMembership =
+                    IntegerCeilingDivision(newTotalCapacity, numBitsInMembershipElement) - 1;
 
-            ConditionallyExpandMembershipSize();
+                ConditionallyExpandMembershipSize();
+            }
             return this;
         }
 
