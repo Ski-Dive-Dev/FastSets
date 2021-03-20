@@ -77,7 +77,7 @@ namespace SkiDiveDev.FastSets
         private ulong GetActiveMembersAtIndex(int elementIndex) =>
             _superSet.ToUlongArray()[elementIndex];
 
-        public bool IsReadOnly => false;
+        public bool IsReadOnly => (this is IReadOnlyFastSet<T>);
 
 
         public string Name { get; private set; }
@@ -152,6 +152,23 @@ namespace SkiDiveDev.FastSets
             return this;
         }
 
+        bool ICollection<T>.Remove(T member)
+        {
+            if (!_superSet.Contains(member))
+            {
+                const bool falseToIndicateItemWasNotFoundInSet = false;
+                return falseToIndicateItemWasNotFoundInSet;
+            }
+
+            var memberIndex = GetIndexOfMember(member);
+
+            var (elementIndex, bitIndex) = GetElementAndBitIndices(memberIndex);
+            _membership[elementIndex] &= GetBitClearedAtIndex(bitIndex);
+
+            const bool trueToIndicateItemWasSuccessfullyRemovedFromSet = true;
+            return trueToIndicateItemWasSuccessfullyRemovedFromSet;
+        }
+
 
         /// <summary>
         /// An O(n) method to calculate the Hamming weight of a bit array, where n is the total number of bits in
@@ -203,6 +220,8 @@ namespace SkiDiveDev.FastSets
             ? 0
             : 1);
 
+        private int NumBitsInUse => NumTrackedMembers;
+
 
         /// <summary>
         /// When the object is stable, returns the same value as <see cref="ISuperSet{T}.PopulationSize"/>.
@@ -240,6 +259,8 @@ namespace SkiDiveDev.FastSets
             return ((_membership[elementIndex] & GetBitSetAtIndex(indexOfItem)) != 0);
         }
 
+
+        // TODO: Inject
         private string GenerateNewSetName(string @operator, string operandSetName)
         {
             const int maxNumCharactersInName = 255;
@@ -299,6 +320,17 @@ namespace SkiDiveDev.FastSets
                 }
             }
             return false;
+        }
+
+
+        public void Clear()
+        {
+            for (var i = 0; i < _membership.Length; i++)
+            {
+                _membership[i] = 0;
+            }
+            _lastUsedIndexInMembership = 0;
+            _numBitsUsedInLastElement = 0;
         }
 
 
@@ -484,7 +516,52 @@ namespace SkiDiveDev.FastSets
                     : 1);
 
 
-        public IDictionary<T, bool> ToDictionary() => throw new NotImplementedException();
+        /// <summary>
+        /// Returns the superset's Population and a <see langword="bool"/> which indicates each superset's
+        /// membership within this set.
+        /// </summary>
+        public IDictionary<T, bool> ToDictionary()
+        {
+            var members = new Dictionary<T, bool>(this.Count);
+
+            var activeMembers = _superSet.ToUlongArray();
+
+            for (var i = 0; i <= _lastUsedIndexInMembership; i++)
+            {
+                var activeMembersInThisElement = _membership[i] & activeMembers[i];
+                for (var b = 0; b <= numBitsInMembershipElement; b++)
+                {
+                    var memberIndex = GetIndexOfMember(elementIndex: i, bitIndex: b);
+                    var member = _superSet.Population[memberIndex];
+                    var isMember = ((GetBitSetAtIndex(b) & activeMembersInThisElement) != 0);
+                    members.Add(member, isMember);
+                }
+            }
+
+            return members;
+        }
+
+
+        /// <summary>
+        /// Returns the set members as an <see cref="IEnumerable{T}"/>.
+        /// </summary>
+        public IEnumerable<T> AsEnumerable()
+        {
+            var activeMembers = _superSet.ToUlongArray();
+
+            for (var i = 0; i <= _lastUsedIndexInMembership; i++)
+            {
+                var activeMembersInThisElement = _membership[i] & activeMembers[i];
+                for (var b = 0; b <= numBitsInMembershipElement; b++)
+                {
+                    if ((GetBitSetAtIndex(b) & activeMembersInThisElement) != 0)
+                    {
+                        var memberIndex = GetIndexOfMember(elementIndex: i, bitIndex: b);
+                        yield return _superSet.Population[memberIndex];
+                    }
+                }
+            }
+        }
 
 
         public override int GetHashCode(T obj) => throw new NotImplementedException();
@@ -569,6 +646,7 @@ namespace SkiDiveDev.FastSets
 
 
         bool ISet<T>.Add(T item) => throw new NotImplementedException();
+        void ICollection<T>.Add(T item) => throw new NotImplementedException();
         public void ExceptWith(IEnumerable<T> other) => throw new NotImplementedException();
         public void IntersectWith(IEnumerable<T> other) => throw new NotImplementedException();
         public bool IsProperSubsetOf(IEnumerable<T> other) => throw new NotImplementedException();
@@ -579,9 +657,31 @@ namespace SkiDiveDev.FastSets
         public bool SetEquals(IEnumerable<T> other) => throw new NotImplementedException();
         public void SymmetricExceptWith(IEnumerable<T> other) => throw new NotImplementedException();
         public void UnionWith(IEnumerable<T> other) => throw new NotImplementedException();
-        void ICollection<T>.Add(T item) => throw new NotImplementedException();
-        public void Clear() => throw new NotImplementedException();
-        public void CopyTo(T[] array, int arrayIndex) => throw new NotImplementedException();
-        bool ICollection<T>.Remove(T item) => throw new NotImplementedException();
+
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            array = array ?? throw new ArgumentNullException(nameof(array));
+            if (array.Length == 0)
+            {
+                return;
+            }
+
+            if (arrayIndex < 0 || arrayIndex >= array.Length)
+            {
+                throw new ArgumentOutOfRangeException(nameof(arrayIndex));
+            }
+
+            var setMembers = AsEnumerable()
+                .ToArray();
+
+            var numMembersToCopy = Math.Min(setMembers.Length, array.Length - arrayIndex);
+            Array.Copy(
+                sourceArray: setMembers,
+                sourceIndex: 0,
+                destinationArray: array,
+                destinationIndex: arrayIndex,
+                length: numMembersToCopy);
+        }
     }
 }
