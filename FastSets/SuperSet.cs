@@ -84,23 +84,13 @@ namespace SkiDiveDev.FastSets
 
         public ISuperSet<T> AddMember(T member)
         {
-            if (Population.Contains(member))
-            {
-                _activeMembers.Add(member);                                     // reactivate
-            }
-            else
+            if (!Population.Contains(member))
             {
                 Population.Add(member);
-                _sets["__activeMembers"].Add(member);
-
-                foreach (var thisSet in _sets.Values)
-                {
-                    if (thisSet.Name != "__activeMembers")
-                    {
-                        thisSet.Add(member);
-                    }
-                }
             }
+
+            // Will re-activate the member if it already exists:
+            _activeMembers.Add(member);
 
             return this;
         }
