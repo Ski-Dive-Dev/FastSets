@@ -13,6 +13,11 @@ namespace SkiDiveDev.FastSets
         const int numBitsPerByte = 8;
         const int numBytesPerElement = numBitsInMembershipElement / numBitsPerByte;
 
+        /// <summary>
+        /// Bit encodings of the members, specified in-order within <see cref="ISuperSet{T}.Population"/>, of this
+        /// set.  The least-significant-bit (LSb) of <see cref="_membership"/>[0] represents the membership of the
+        /// first member within <see cref="ISuperSet{T}"/>.
+        /// </summary>
         private ulong[] _membership;
         private int _lastUsedIndexInMembership = 0;
         private int _numBitsUsedInLastElement = 0;
@@ -65,7 +70,7 @@ namespace SkiDiveDev.FastSets
 
         /// <summary>
         /// Gets the element at the given <paramref name="elementIndex"/> of
-        /// <see cref="ISuperSet{T}"/>.
+        /// <see cref="ISuperSet{T}"/> (the active members element.)
         /// </summary>
         private ulong GetActiveMembersAtIndex(int elementIndex) =>
             _superSet.ToUlongArray()[elementIndex];
@@ -151,7 +156,12 @@ namespace SkiDiveDev.FastSets
         /// the array.
         /// </summary>
         /// <remarks>
+        /// <para>
         /// Requires that unused bits in the last element be set to zero.
+        /// </para><para>
+        /// Also requires that all members in this set are active in the superset (this is not checked for
+        /// performance reasons.)
+        /// </para>
         /// </remarks>
         public int Count
         {
@@ -180,13 +190,20 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         private int Capacity => _membership.Length * numBitsInMembershipElement;
 
+        /// <summary>
+        /// The number of elements in use within <see cref="_membership"/>.
+        /// </summary>
+        /// <remarks>
+        /// Based on the 0-based <see cref="_lastUsedIndexInMembership"/>.  Will return <c>0</c> if both
+        /// <see cref="_lastUsedIndexInMembership"/> and <see cref="_numBitsUsedInLastElement"/> are both <c>0</c>.
+        /// </remarks>
         private int NumElementsInUse => _lastUsedIndexInMembership + (_numBitsUsedInLastElement == 0
             ? 0
             : 1);
 
 
         /// <summary>
-        /// 
+        /// When the object is stable, returns the same value as <see cref="ISuperSet{T}.PopulationSize"/>.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -197,7 +214,7 @@ namespace SkiDiveDev.FastSets
         /// </para><para>
         /// 2) <see cref="NumElementsInUse"/>: The number of array elements within <see cref="_membership"/> that
         /// are in use, even if the last element is only partially used.
-        /// 3) <see cref="NumTrackedMembers"/>: <i>should</i> equal <see cref="ISuperSet.NumberOfMembers"/>.
+        /// 3) <see cref="NumTrackedMembers"/>: <i>should</i> equal <see cref="ISuperSet.PopulationSize"/>.
         /// </para><para>
         /// 4) <see cref="Count"/>: Number of members within the set.
         /// </para>
@@ -241,6 +258,9 @@ namespace SkiDiveDev.FastSets
         }
 
 
+        /// <summary>
+        /// Returns <see langword="true"/> if all members within the superset's population are within this set.
+        /// </summary>
         public bool All()
         {
             var activeMembers = _superSet.ToUlongArray();
@@ -259,6 +279,10 @@ namespace SkiDiveDev.FastSets
         }
 
 
+        /// <summary>
+        /// Returns <see langword="true"/> if there are any members within the set.  (This method is more
+        /// performant than using <see cref="Count"/>.)
+        /// </summary>
         public bool Any()
         {
             var activeMembers = _superSet.ToUlongArray();
@@ -278,6 +302,12 @@ namespace SkiDiveDev.FastSets
 
         public IReadOnlyFastSet<T> DifferenceFrom(IReadOnlyFastSet<T> source) => throw new NotImplementedException();
 
+
+        /// <summary>
+        /// Returns an immutable set that is the result of the Set Intersection function between this set and the
+        /// given set.  The set that the method is invoked on is unmodified.
+        /// </summary>
+        /// <param name="setName">The name of a set that is a member of the enclosing SuperSet.</param>
         public IReadOnlyFastSet<T> IntersectedWith(string setName)
         {
             if (!_superSet.Sets.ContainsKey(setName))
@@ -289,6 +319,10 @@ namespace SkiDiveDev.FastSets
             return IntersectedWith(_superSet.Sets[setName]);
         }
 
+        /// <summary>
+        /// Returns an immutable set that is the result of the Set Intersection function between this set and the
+        /// given set.  The set that the method is invoked on is unmodified.
+        /// </summary>
         public IReadOnlyFastSet<T> IntersectedWith(IReadOnlyFastSet<T> source)
         {
             var sourceMembership = source.ToUlongArray();
@@ -309,6 +343,11 @@ namespace SkiDiveDev.FastSets
         }
 
 
+        /// <summary>
+        /// Returns an immutable set that is the result of the Set Union function between this set and the
+        /// given set.  The set that the method is invoked on is unmodified.
+        /// </summary>
+        /// <param name="setName">The name of a set that is a member of the enclosing SuperSet.</param>
         public IReadOnlyFastSet<T> UnionedWith(string setName)
         {
             if (!_superSet.Sets.TryGetValue(setName, out var sourceSet))
@@ -321,6 +360,10 @@ namespace SkiDiveDev.FastSets
         }
 
 
+        /// <summary>
+        /// Returns an immutable set that is the result of the Set Union function between this set and the
+        /// given set.  The set that the method is invoked on is unmodified.
+        /// </summary>
         public IReadOnlyFastSet<T> UnionedWith(IReadOnlyFastSet<T> source)
         {
             var sourceMembership = source.ToUlongArray();
@@ -488,8 +531,18 @@ namespace SkiDiveDev.FastSets
             return false;
         }
 
+
+        /// <summary>
+        /// Gets the index of the given member within the superset's Population.
+        /// </summary>
         private int GetIndexOfMember(T member) => _superSet.Population.IndexOf(member);
 
+        /// <summary>
+        /// Gets the index of the member given its index into <see cref="_membership"/> and its 0-based bit index
+        /// into that element.
+        /// </summary>
+        private int GetIndexOfMember(int elementIndex, int bitIndex) =>
+            elementIndex * numBitsInMembershipElement + bitIndex;
 
         /// <summary>
         /// Given a 0-based index into a list, returns the element index and bit index within the element that
@@ -502,7 +555,14 @@ namespace SkiDiveDev.FastSets
             return (elementIndex, bitIndex);
         }
 
+        /// <summary>
+        /// Returns a <see langword="ulong"/> in which the given bit index is the only one set (set to 1).
+        /// </summary>
         private ulong GetBitSetAtIndex(int zeroBasedBitIndex) => 1UL << zeroBasedBitIndex;
+
+        /// <summary>
+        /// Returns a <see langword="ulong"/> in which the given bit index is the only one cleared (set to 0).
+        /// </summary>
         private ulong GetBitClearedAtIndex(int zeroBasedBitIndex) => ~(1UL << zeroBasedBitIndex);
 
 
