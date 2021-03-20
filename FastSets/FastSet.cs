@@ -19,9 +19,17 @@ namespace SkiDiveDev.FastSets
         /// first member within <see cref="ISuperSet{T}"/>.
         /// </summary>
         private ulong[] _membership;
+
         private int _lastUsedIndexInMembership = 0;
         private int _numBitsUsedInLastElement = 0;
         private readonly ISuperSet<T> _superSet;
+
+
+        internal static IMutableFastSet<T> Create(ISuperSet<T> superSet, string setName,
+             ulong[] presetMembership = null) => new FastSet<T>(superSet, setName, presetMembership);
+
+        internal static IMutableFastSet<T> Create(ISuperSet<T> superSet, string setName,
+             string base64EncodedMembership) => new FastSet<T>(superSet, setName, base64EncodedMembership);
 
 
         protected FastSet(ISuperSet<T> superSet, string setName, ulong[] presetMembership = null)
@@ -30,6 +38,7 @@ namespace SkiDiveDev.FastSets
             Name = setName;
             InitMembership(presetMembership);
         }
+
 
         protected FastSet(ISuperSet<T> superSet, string setName, string base64EncodedMembership)
         {
@@ -43,13 +52,6 @@ namespace SkiDiveDev.FastSets
             var presetMembership = FromBase64(base64EncodedMembership);
             InitMembership(presetMembership);
         }
-
-
-        internal static IMutableFastSet<T> Create(ISuperSet<T> superSet, string setName,
-             ulong[] presetMembership = null) => new FastSet<T>(superSet, setName, presetMembership);
-
-        internal static IMutableFastSet<T> Create(ISuperSet<T> superSet, string setName,
-             string base64EncodedMembership) => new FastSet<T>(superSet, setName, base64EncodedMembership);
 
 
         private void InitMembership(ulong[] presetMembership)
