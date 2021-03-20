@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SkiDiveDev.FastSets
 {
-    public class SuperSet<T> : ISuperSet<T>, IReadOnlyFastSet<T> where T : IEquatable<T>
+    public class SuperSet<T> : ISuperSet<T>, IReadOnlyFastSet<T>, ISet<T> where T : IEquatable<T>
     {
         const int numBitsInMembershipElement = 64;
         readonly IMutableFastSet<T> _activeMembers;

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace SkiDiveDev.FastSets
 {
-    public interface IMutableFastSet<T> : IReadOnlyFastSet<T> where T : IEquatable<T>
+    public interface IMutableFastSet<T> : IReadOnlyFastSet<T>, ISet<T> where T : IEquatable<T>
     {
         /// <summary>
         /// Sets the name of the set to the given <paramref name="setName"/>.

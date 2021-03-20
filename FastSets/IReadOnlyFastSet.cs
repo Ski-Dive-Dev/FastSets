@@ -14,6 +14,8 @@ namespace SkiDiveDev.FastSets
         string Name { get; }
 
 
+        new bool IsReadOnly { get; }
+
         IReadOnlyFastSet<T> IntersectedWith(string setName);
 
         /// <summary>
@@ -42,6 +44,13 @@ namespace SkiDiveDev.FastSets
         /// the invoked <see cref="IReadOnlyFastSet{T}"/>.
         /// </summary>
         bool Any();
+
+        new bool Contains(T member);
+
+        /// <summary>
+        /// Returns the number of members within the set.
+        /// </summary>
+        new int Count { get; }
 
 
         string ToBase64();
