@@ -277,5 +277,75 @@ namespace SkiDiveDev.FastSets.Test
             // Assert
             Assert.That(result, Is.EqualTo(expected));
         }
+
+
+
+        [TestCase(1, 0, 1)]
+        [TestCase(64, 0, 1)]
+        [TestCase(100, 0, 1)]
+        public void WhenThereAreNoMembers_Clear_ShouldNotAffectMembership(int populationSize, int numMembers,
+            int memberSelector)
+        {
+            // Arrange
+            var testSet1 = _superSet.AddSet("setA");
+            var expected = new ulong[0];
+
+            // Set up population
+            for (var i = 0; i < populationSize; i++)
+            {
+                _superSet.AddMember("Test Member " + i);
+            }
+
+
+            // Set up set members
+            for (var i = 0; i < numMembers; i += memberSelector)
+            {
+                testSet1.Add("Test Member " + i);
+            }
+
+
+            // Act
+            testSet1.Clear();
+            var result = testSet1.ToUlongArray();
+
+            // Assert
+            Assert.That(result, Is.EqualTo(expected));
+        }
+
+
+        [TestCase(64, 10, 1)]
+        [TestCase(100, 99, 1)]
+        [TestCase(64, 50, 2)]
+        [TestCase(100, 99, 2)]
+        [TestCase(64, 51, 3)]
+        [TestCase(100, 99, 3)]
+        public void WhenThereAreMembers_Clear_ShouldRemoveAllOfThem(int populationSize, int numMembers,
+            int memberSelector)
+        {
+            // Arrange
+            var testSet1 = _superSet.AddSet("setA");
+            var expected = new ulong[0];
+
+            // Set up population
+            for (var i = 0; i < populationSize; i++)
+            {
+                _superSet.AddMember("Test Member " + i);
+            }
+
+
+            // Set up set members
+            for (var i = 0; i < numMembers; i += memberSelector)
+            {
+                testSet1.Add("Test Member " + i);
+            }
+
+
+            // Act
+            testSet1.Clear();
+            var result = testSet1.ToUlongArray();
+
+            // Assert
+            Assert.That(result, Is.EquivalentTo(expected));
+        }
     }
 }
