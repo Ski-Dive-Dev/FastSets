@@ -20,7 +20,7 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         private ulong[] _membership;
 
-        private int _lastUsedIndexInMembership = 0;
+        private int _lastUsedIndexInMembership = -1;
         private int _numBitsUsedInLastElement = 0;
         private readonly ISuperSet<T> _superSet;
 
@@ -56,8 +56,8 @@ namespace SkiDiveDev.FastSets
 
         private void InitMembership(ulong[] presetMembership)
         {
-            var minNumMembershipElementsRequired = (int)Math.Max(1,
-                IntegerCeilingDivision(_superSet.PopulationSize, numBitsInMembershipElement));
+            var minNumMembershipElementsRequired =
+                IntegerCeilingDivision(_superSet.PopulationSize, numBitsInMembershipElement);
 
             if (presetMembership != null && presetMembership.Length < minNumMembershipElementsRequired)
             {

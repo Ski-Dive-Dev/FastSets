@@ -26,6 +26,13 @@ namespace SkiDiveDev.FastSets
         {
             var numElementsInUse = IntegerCeilingDivision(Population.Count, numBitsInMembershipElement);
             var activeMembers = new ulong[numElementsInUse];
+
+            if (numElementsInUse == 0)
+            {
+                return activeMembers;
+            }
+
+
             for (var i = 0; i < numElementsInUse - 1; i++)
             {
                 const ulong allBitsSet = ulong.MaxValue;
