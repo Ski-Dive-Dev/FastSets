@@ -588,7 +588,7 @@ namespace SkiDiveDev.FastSets
             for (var i = 0; i <= _lastUsedIndexInMembership; i++)
             {
                 var activeMembersInThisElement = _membership[i] & activeMembers[i];
-                for (var b = 0; b <= numBitsInMembershipElement; b++)
+                for (var b = 0; b < numBitsInMembershipElement; b++)
                 {
                     if ((GetBitSetAtIndex(b) & activeMembersInThisElement) != 0)
                     {

@@ -58,5 +58,7 @@ namespace SkiDiveDev.FastSets
         ulong[] ToUlongArray();
 
         IDictionary<T, bool> ToDictionary();
+
+        IEnumerable<T> AsEnumerable();
     }
 }

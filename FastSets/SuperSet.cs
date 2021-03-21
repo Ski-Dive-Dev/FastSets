@@ -133,6 +133,7 @@ namespace SkiDiveDev.FastSets
         public byte[] ToByteArray() => _activeMembers.ToByteArray();
         public ulong[] ToUlongArray() => _activeMembers.ToUlongArray();
         public IDictionary<T, bool> ToDictionary() => _activeMembers.ToDictionary();
+        public IEnumerable<T> AsEnumerable() => _activeMembers.AsEnumerable();
         public bool Add(T item) => ((ISet<T>)_activeMembers).Add(item);
         public void ExceptWith(IEnumerable<T> other) => _activeMembers.ExceptWith(other);
         public void IntersectWith(IEnumerable<T> other) => _activeMembers.IntersectWith(other);
