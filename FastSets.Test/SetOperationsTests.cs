@@ -9,10 +9,7 @@ namespace SkiDiveDev.FastSets.Test
     {
         ISuperSet<string> _superSet;
 
-        [SetUp]
-        public void Setup()
-        {
-            var population = new List<string>
+        List<string> _population = new List<string>
             {
                 "Allison",
                 "Bobby",
@@ -24,7 +21,11 @@ namespace SkiDiveDev.FastSets.Test
                 "Hillary",
                 "Iris",
                 "Jane" };
-            _superSet = new SuperSet<string>("Test", "Test Superset", population);
+
+        [SetUp]
+        public void Setup()
+        {
+            _superSet = new SuperSet<string>("Test", "Test Superset", _population);
         }
 
 
