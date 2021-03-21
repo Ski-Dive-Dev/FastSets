@@ -141,5 +141,74 @@ namespace SkiDiveDev.FastSets.Test
             }
         }
 
+
+        [TestCase(0, 0)]
+        [TestCase(1, 1)]
+        [TestCase(64, 64)]
+        [TestCase(100, 100)]
+        public void WhenAllPopulationIsInSet_All_ShouldReturnTrue(int populationSize, int numMembers)
+        {
+            // Arrange
+            var testSet1 = _superSet.AddSet("setA");
+            var expected = (numMembers == populationSize);
+
+            // Set up population
+            for (var i = 0; i < populationSize; i++)
+            {
+                _superSet.AddMember("Test Member " + i);
+            }
+
+
+            // Set up set members
+            for (var i = 0; i < numMembers; i++)
+            {
+                testSet1.Add("Test Member " + i);
+            }
+
+
+            // Act
+            var result = testSet1.All();
+
+            // Assert
+            Assert.That(result, Is.EqualTo(expected));
+        }
+
+
+        [TestCase(1, 0, 1)]
+        [TestCase(64, 0, 1)]
+        [TestCase(100, 0, 1)]
+        [TestCase(64, 10, 1)]
+        [TestCase(100, 99, 1)]
+        [TestCase(64, 50, 2)]
+        [TestCase(100, 99, 2)]
+        [TestCase(64, 51, 3)]
+        [TestCase(100, 99, 3)]
+        public void WhenNotAllPopulationIsInSet_All_ShouldReturnFalse(int populationSize, int numMembers,
+            int memberSelector)
+        {
+            // Arrange
+            var testSet1 = _superSet.AddSet("setA");
+            var expected = (numMembers == populationSize);
+
+            // Set up population
+            for (var i = 0; i < populationSize; i++)
+            {
+                _superSet.AddMember("Test Member " + i);
+            }
+
+
+            // Set up set members
+            for (var i = 0; i < numMembers; i += memberSelector)
+            {
+                testSet1.Add("Test Member " + i);
+            }
+
+
+            // Act
+            var result = testSet1.All();
+
+            // Assert
+            Assert.That(result, Is.EqualTo(expected));
+        }
     }
 }

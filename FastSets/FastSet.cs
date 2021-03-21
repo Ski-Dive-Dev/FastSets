@@ -216,9 +216,9 @@ namespace SkiDiveDev.FastSets
         /// Based on the 0-based <see cref="_lastUsedIndexInMembership"/>.  Will return <c>0</c> if both
         /// <see cref="_lastUsedIndexInMembership"/> and <see cref="_numBitsUsedInLastElement"/> are both <c>0</c>.
         /// </remarks>
-        private int NumElementsInUse => _lastUsedIndexInMembership + (_numBitsUsedInLastElement == 0
+        private int NumElementsInUse => (_lastUsedIndexInMembership < 0)
             ? 0
-            : 1);
+            : (_lastUsedIndexInMembership + (_numBitsUsedInLastElement == 0 ? 0 : 1));
 
         private int NumBitsInUse => NumTrackedMembers;
 
@@ -240,8 +240,9 @@ namespace SkiDiveDev.FastSets
         /// 4) <see cref="Count"/>: Number of members within the set.
         /// </para>
         /// </remarks>
-        private int NumTrackedMembers =>
-            _lastUsedIndexInMembership * numBitsInMembershipElement + _numBitsUsedInLastElement;
+        private int NumTrackedMembers => (_lastUsedIndexInMembership < 0)
+            ? 0
+            : _lastUsedIndexInMembership * numBitsInMembershipElement + _numBitsUsedInLastElement;
 
 
 
@@ -281,11 +282,20 @@ namespace SkiDiveDev.FastSets
         }
 
 
+        private bool MembershipIsEmpty => _lastUsedIndexInMembership < 0;
+
+
         /// <summary>
         /// Returns <see langword="true"/> if all members within the superset's population are within this set.
         /// </summary>
         public bool All()
         {
+            if (MembershipIsEmpty)
+            {
+                const bool trueToIndicateAllInPopulation_WhichIs0_AreInSet = true;
+                return trueToIndicateAllInPopulation_WhichIs0_AreInSet;
+            }
+
             var activeMembers = _superSet.ToUlongArray();
 
             for (var i = 0; i < _lastUsedIndexInMembership; i++)
@@ -296,8 +306,7 @@ namespace SkiDiveDev.FastSets
                 }
             }
 
-            var numMembersInLastElement = _superSet.PopulationSize % numBitsInMembershipElement;
-            var lastElementValueWhenAllMembersSet = (ulong)((1 << numMembersInLastElement) - 1);
+            var lastElementValueWhenAllMembersSet = GetLsbMask(_numBitsUsedInLastElement);
             return (_membership[_lastUsedIndexInMembership] == lastElementValueWhenAllMembersSet);
         }
 
@@ -308,6 +317,11 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         public bool Any()
         {
+            if (MembershipIsEmpty)
+            {
+                return false;
+            }
+
             var activeMembers = _superSet.ToUlongArray();
 
             // This method can produce a false-positive if the unused bits in the last element are improperly set.
@@ -517,13 +531,13 @@ namespace SkiDiveDev.FastSets
         public ulong[] ToUlongArray()
         {
             var activeElements = new ulong[NumElementsInUse];
+
             Array.Copy(
                 sourceArray: _membership,
                 sourceIndex: 0,
                 destinationArray: activeElements,
                 destinationIndex: 0,
                 length: NumElementsInUse);
-
             return activeElements;
         }
 
@@ -669,6 +683,11 @@ namespace SkiDiveDev.FastSets
         /// Returns a <see langword="ulong"/> in which the given bit index is the only one cleared (set to 0).
         /// </summary>
         private ulong GetBitClearedAtIndex(int zeroBasedBitIndex) => ~(1UL << zeroBasedBitIndex);
+
+        private ulong GetLsbMask(int numLeastSignificantBitsToMask) =>
+            (numLeastSignificantBitsToMask == numBitsInMembershipElement)
+            ? ulong.MaxValue
+            : ~(ulong.MaxValue << numLeastSignificantBitsToMask);
 
 
         bool ISet<T>.Add(T item) => throw new NotImplementedException();
