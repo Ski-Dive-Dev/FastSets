@@ -31,6 +31,9 @@ namespace SkiDiveDev.FastSets
         internal static IMutableFastSet<T> Create(ISuperSet<T> superSet, string setName,
              string base64EncodedMembership) => new FastSet<T>(superSet, setName, base64EncodedMembership);
 
+        internal static IMutableFastSet<T> Create(ISuperSet<T> superSet, string setName,
+             ICollection<T> members) => new FastSet<T>(superSet, setName, members);
+
 
         protected FastSet(ISuperSet<T> superSet, string setName, ulong[] presetMembership = null)
         {
@@ -51,6 +54,22 @@ namespace SkiDiveDev.FastSets
             Name = setName;
             var presetMembership = FromBase64(base64EncodedMembership);
             InitMembership(presetMembership);
+        }
+
+
+        protected FastSet(ISuperSet<T> superSet, string setName, ICollection<T> members)
+        {
+            if (members == null)
+            {
+                throw new ArgumentNullException(nameof(members));
+            }
+
+            _superSet = superSet ?? throw new ArgumentNullException(nameof(superSet));
+            Name = setName;
+            const ulong[] nullToGenerateMembershipFromPopulation = null;
+            InitMembership(nullToGenerateMembershipFromPopulation);
+            Add(members);
+
         }
 
 
@@ -116,7 +135,7 @@ namespace SkiDiveDev.FastSets
 
         public IMutableFastSet<T> Add(ICollection<T> members)
         {
-            if (Name != "__activeMembers" && !members.All(m => _superSet.Contains(m)))
+            if (Name != "__activeMembers" && _superSet.Population.Intersect(members) == members)
             {
                 throw new Exception(
                     "Cannot add a member to a Set when that member does not exist in its enclosing SuperSet.");
@@ -367,6 +386,13 @@ namespace SkiDiveDev.FastSets
             return IntersectedWith(_superSet.Sets[setName]);
         }
 
+        public IReadOnlyFastSet<T> IntersectedWith(ICollection<T> members)
+        {
+            members = members ?? throw new ArgumentNullException(nameof(members));
+            var tempSet = new FastSet<T>(_superSet, "temp", members);
+            return IntersectedWith(tempSet);
+        }
+
         /// <summary>
         /// Returns an immutable set that is the result of the Set Intersection function between this set and the
         /// given set.  The set that the method is invoked on is unmodified.
@@ -405,6 +431,13 @@ namespace SkiDiveDev.FastSets
             }
 
             return UnionedWith(sourceSet);
+        }
+
+        public IReadOnlyFastSet<T> UnionedWith(ICollection<T> members)
+        {
+            members = members ?? throw new ArgumentNullException(nameof(members));
+            var tempSet = new FastSet<T>(_superSet, "temp", members);
+            return UnionedWith(tempSet);
         }
 
 
@@ -565,7 +598,7 @@ namespace SkiDiveDev.FastSets
             for (var i = 0; i <= _lastUsedIndexInMembership; i++)
             {
                 var activeMembersInThisElement = _membership[i] & activeMembers[i];
-                for (var b = 0; b <= numBitsInMembershipElement; b++)
+                for (var b = 0; b < numBitsInMembershipElement; b++)
                 {
                     var memberIndex = GetIndexOfMember(elementIndex: i, bitIndex: b);
                     var member = _superSet.Population[memberIndex];

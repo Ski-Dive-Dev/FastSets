@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace SkiDiveDev.FastSets
@@ -11,38 +12,38 @@ namespace SkiDiveDev.FastSets
         readonly IMutableFastSet<T> _activeMembers;
         readonly IDictionary<string, IMutableFastSet<T>> _sets = new Dictionary<string, IMutableFastSet<T>>();
 
-        public SuperSet(string name, string description, IEnumerable<T> population)
+        public SuperSet(string name, string description, ICollection<T> population)
         {
             Name = name;
             Description = description;
-            Population = (IList<T>)population;
+            Population = population.ToList();
 
-            var activeMembers = InitActiveMembers();
+            var activeMembers = GetArrayWithBitsSet(Population.Count);
             _activeMembers = FastSet<T>.Create(this, "__activeMembers", activeMembers);
             _sets.Add("__activeMembers", _activeMembers);
         }
 
-        private ulong[] InitActiveMembers()
+        private ulong[] GetArrayWithBitsSet(int numBitsToSet)
         {
-            var numElementsInUse = IntegerCeilingDivision(Population.Count, numBitsInMembershipElement);
-            var activeMembers = new ulong[numElementsInUse];
+            var numElementsInUse = IntegerCeilingDivision(numBitsToSet, numBitsInMembershipElement);
+            var arrayOfBits = new ulong[numElementsInUse];
 
             if (numElementsInUse == 0)
             {
-                return activeMembers;
+                return arrayOfBits;
             }
 
 
             for (var i = 0; i < numElementsInUse - 1; i++)
             {
                 const ulong allBitsSet = ulong.MaxValue;
-                activeMembers[i] = allBitsSet;
+                arrayOfBits[i] = allBitsSet;
             }
 
-            var numMembersInLastElement = Population.Count % numBitsInMembershipElement;
+            var numMembersInLastElement = numBitsToSet % numBitsInMembershipElement;
             var setAllUsedBits = (ulong)((1 << numMembersInLastElement) - 1);
-            activeMembers[numElementsInUse - 1] = setAllUsedBits;
-            return activeMembers;
+            arrayOfBits[numElementsInUse - 1] = setAllUsedBits;
+            return arrayOfBits;
         }
 
 
@@ -67,6 +68,13 @@ namespace SkiDiveDev.FastSets
         public IMutableFastSet<T> AddSet(string setName, string base64EncodedMembership)
         {
             var set = FastSet<T>.Create(this, setName, base64EncodedMembership);
+            _sets.Add(set.Name, set);
+            return set;
+        }
+
+        public IMutableFastSet<T> AddSet(string setName, ICollection<T> members)
+        {
+            var set = FastSet<T>.Create(this, setName, members);
             _sets.Add(set.Name, set);
             return set;
         }
@@ -102,6 +110,31 @@ namespace SkiDiveDev.FastSets
             return this;
         }
 
+        public ISuperSet<T> AddMembers(ICollection<T> members)
+        {
+        //    var activeMembers = _activeMembers.ToUlongArray();
+        //    var deletedMembers = new ulong[_activeMembers.Count];
+        //    for (var i = 0; i < activeMembers.Length; i++)
+        //    {
+        //        deletedMembers[i] = ~activeMembers[i];
+        //    }
+        //    var deletedMembersSet = FastSet<T>.Create(this, "temporary", deletedMembers);
+
+            // TODO: The following will exclude deleted members who are to be re-activated ???
+            var uniqueMembers = members.Except(Population).ToList();
+
+            foreach (var thisMember in uniqueMembers)
+            {
+                Population.Add(thisMember);
+
+                // Will re-activate the member if it already exists:
+                _activeMembers.Add(thisMember);
+            }
+
+            return this;
+        }
+
+
         public ISuperSet<T> RemoveMember(T member)
         {
             _activeMembers.Remove(member);
@@ -121,9 +154,12 @@ namespace SkiDiveDev.FastSets
 
 
         public IReadOnlyFastSet<T> IntersectedWith(string setName) => _activeMembers.IntersectedWith(setName);
+        public IReadOnlyFastSet<T> IntersectedWith(ICollection<T> members) => 
+            _activeMembers.IntersectedWith(members);
         public IReadOnlyFastSet<T> IntersectedWith(IReadOnlyFastSet<T> source)
             => _activeMembers.IntersectedWith(source);
         public IReadOnlyFastSet<T> UnionedWith(string setName) => _activeMembers.UnionedWith(setName);
+        public IReadOnlyFastSet<T> UnionedWith(ICollection<T> members) => _activeMembers.UnionedWith(members);
         public IReadOnlyFastSet<T> UnionedWith(IReadOnlyFastSet<T> source) => _activeMembers.UnionedWith(source);
         public IReadOnlyFastSet<T> DifferenceFrom(IReadOnlyFastSet<T> source)
             => _activeMembers.DifferenceFrom(source);

@@ -17,6 +17,7 @@ namespace SkiDiveDev.FastSets
         new bool IsReadOnly { get; }
 
         IReadOnlyFastSet<T> IntersectedWith(string setName);
+        IReadOnlyFastSet<T> IntersectedWith(ICollection<T> members);
 
         /// <summary>
         /// Produces the set intersection of the given <see cref="IFastSet"/> set with the invoked object.
@@ -27,6 +28,7 @@ namespace SkiDiveDev.FastSets
         IReadOnlyFastSet<T> IntersectedWith(IReadOnlyFastSet<T> source);
 
         IReadOnlyFastSet<T> UnionedWith(string setName);
+        IReadOnlyFastSet<T> UnionedWith(ICollection<T> members);
 
         IReadOnlyFastSet<T> UnionedWith(IReadOnlyFastSet<T> source);
         IReadOnlyFastSet<T> DifferenceFrom(IReadOnlyFastSet<T> source);
