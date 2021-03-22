@@ -311,8 +311,8 @@ namespace SkiDiveDev.FastSets
         {
             if (MembershipIsEmpty)
             {
-                const bool trueToIndicateAllInPopulation_WhichIs0_AreInSet = true;
-                return trueToIndicateAllInPopulation_WhichIs0_AreInSet;
+                var trueIfThereIsNoPopulation_ThereforeAllInSetAreInPopulation = (_superSet.PopulationSize == 0);
+                return trueIfThereIsNoPopulation_ThereforeAllInSetAreInPopulation;
             }
 
             var activeMembers = _superSet.ToUlongArray();
