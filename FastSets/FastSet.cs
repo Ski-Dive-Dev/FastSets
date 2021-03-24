@@ -130,6 +130,10 @@ namespace SkiDiveDev.FastSets
         }
 
 
+        /// <summary>
+        /// The members to add to this set.  Only members that are within the superset's Population will be added.
+        /// </summary>
+        /// <param name="members">The members (that exist in the superset) to add to this set.</param>
         public IMutableFastSet<T> Add(ICollection<T> members)
         {
             AddCapacity(_superSet.PopulationSize - NumTrackedMembers);
@@ -144,13 +148,6 @@ namespace SkiDiveDev.FastSets
             foreach (var thisMember in members)
             {
                 var memberIndex = GetIndexOfMember(thisMember);
-
-                if (memberIndex == -1)
-                {
-                    throw new Exception($"Cannot add a member to a Set when that member ({thisMember}) does not" +
-                        $" exist in its enclosing SuperSet.");
-                }
-
                 var (elementIndex, bitIndex) = GetElementAndBitIndices(memberIndex);
                 _membership[elementIndex] |= GetBitSetAtIndex(bitIndex);
             }
