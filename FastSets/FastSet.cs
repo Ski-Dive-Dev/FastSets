@@ -106,19 +106,23 @@ namespace SkiDiveDev.FastSets
 
 
 
+        /// <summary>
+        /// The superset's Population must contain the member to be added to this set.
+        /// </summary>
+        /// <param name="member">The member (that exists in the superset) to add to this set.</param>
         public IMutableFastSet<T> Add(T member)
         {
-            // Short-circuit note: Name must be checked first or a deadly embrace exists due to circular logic.
-            if (Name != "__activeMembers" && !_superSet.Contains(member))
-            {
-                throw new Exception(
-                    "Cannot add a member to a Set when that member does not exist in its enclosing SuperSet.");
-            }
-
             AddCapacity(_superSet.PopulationSize - NumTrackedMembers);
 
             var memberIndex = GetIndexOfMember(member);
 
+            // Short-circuit note: Name must be checked first or a deadly embrace exists due to circular logic.
+            if (Name != "__activeMembers" && memberIndex == -1)
+            {
+                throw new Exception(
+                    "Cannot add a member to a Set when that member does not exist in its enclosing SuperSet.");
+
+            }
             var (elementIndex, bitIndex) = GetElementAndBitIndices(memberIndex);
             _membership[elementIndex] |= GetBitSetAtIndex(bitIndex);
 
