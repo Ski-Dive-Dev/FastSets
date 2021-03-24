@@ -329,6 +329,7 @@ namespace SkiDiveDev.FastSets
 
 
         private bool MembershipIsEmpty => (_lastUsedIndexInMembership == codeForNoTrackedMembers);
+        private int LengthOfMembership_OrZero => (MembershipIsEmpty) ? 0 : _membership.Length;
 
 
         /// <summary>
@@ -426,10 +427,12 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         public IReadOnlyFastSet<T> IntersectedWith(IReadOnlyFastSet<T> source)
         {
-            var sourceMembership = source.ToUlongArray();
+            var sourceMembership = source?.ToUlongArray()
+                ?? throw new ArgumentNullException(nameof(source));
+
             var activeMembers = _superSet.ToUlongArray();
 
-            var intersectedMembers = new ulong[_membership.Length];
+            var intersectedMembers = new ulong[LengthOfMembership_OrZero];
 
             for (var i = 0; i < _membership.Length; i++)
             {
@@ -474,10 +477,12 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         public IReadOnlyFastSet<T> UnionedWith(IReadOnlyFastSet<T> source)
         {
-            var sourceMembership = source.ToUlongArray();
+            var sourceMembership = source?.ToUlongArray()
+                ?? throw new ArgumentNullException(nameof(source));
+
             var activeMembers = _superSet.ToUlongArray();
 
-            var unionedMembers = new ulong[_membership.Length];
+            var unionedMembers = new ulong[LengthOfMembership_OrZero];
 
             for (var i = 0; i < _membership.Length; i++)
             {
@@ -496,6 +501,8 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         public string ToBase64()
         {
+            // TODO: This Converter likely already considers endianess of the platform, therefore, the
+            // ToByteArray() will redundantly and erroneously change the endianess of the bytes -- verify!
             return Convert.ToBase64String(ToByteArray());
         }
 
