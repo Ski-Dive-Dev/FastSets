@@ -10,9 +10,26 @@ namespace SkiDiveDev.FastSets
     {
         const int numBitsInMembershipElement = 64;
         const ulong allBitsSetInElement = ulong.MaxValue;
+
+        /// <summary>
+        /// A FastSet which represents the members within <see cref="Population"/> that are active (in other words,
+        /// membes that have not been deleted from the population.)
+        /// </summary>
         readonly IMutableFastSet<T> _activeMembers;
+
+        /// <summary>
+        /// The superset is a container for one or more independent subsets.  Each subset can represent a
+        /// different subset of the <see cref="Population"/> within this super set.
+        /// </summary>
         readonly IDictionary<string, IMutableFastSet<T>> _sets = new Dictionary<string, IMutableFastSet<T>>();
 
+
+        /// <summary>
+        /// Constructs a superset with an initial population of members of type <typeparamref name="T"/>.
+        /// </summary>
+        /// <param name="name">The name of the superset.</param>
+        /// <param name="description">An optional description for the superset.</param>
+        /// <param name="population">The initial members of the superset's population.</param>
         public SuperSet(string name, string description, ICollection<T> population)
         {
             Name = name;
@@ -23,6 +40,7 @@ namespace SkiDiveDev.FastSets
             _activeMembers = FastSet<T>.Create(this, "__activeMembers", activeMembers);
             _sets.Add("__activeMembers", _activeMembers);
         }
+
 
         private ulong[] GetArrayWithBitsSet(int numBitsToSet)
         {
@@ -58,6 +76,14 @@ namespace SkiDiveDev.FastSets
 
         public string Name { get; private set; }
 
+        /// <summary>
+        /// Adds a set to the superset using a membership that was created from another set within this superset,
+        /// or from this superset itself.  This is the fastest way to populate a set with members.
+        /// </summary>
+        /// <param name="setName">The name to give to the set being added.</param>
+        /// <param name="presetMembership">The members created from another set within this superset, or from this
+        /// superset itself.  Using a preset membership that did not originate from this superset (or one of its
+        /// subsets) will result in arbitrary members being added to this set.</param>
         public IMutableFastSet<T> AddSet(string setName, ulong[] presetMembership = null)
         {
             var set = FastSet<T>.Create(this, setName, presetMembership);
@@ -65,6 +91,14 @@ namespace SkiDiveDev.FastSets
             return set;
         }
 
+        /// <summary>
+        /// Adds a set to the superset using a membership that was created from another set within this superset,
+        /// or from this superset itself.  This is a fast way to populate a set with members.
+        /// </summary>
+        /// <param name="setName">The name to give to the set being added.</param>
+        /// <param name="base64EncodedMembership">The members created from another set within this superset, or
+        /// from this superset itself.  Using a preset membership that did not originate from this superset (or one
+        /// of its subsets) will result in arbitrary members being added to this set.</param>
         public IMutableFastSet<T> AddSet(string setName, string base64EncodedMembership)
         {
             var set = FastSet<T>.Create(this, setName, base64EncodedMembership);
@@ -72,6 +106,15 @@ namespace SkiDiveDev.FastSets
             return set;
         }
 
+        /// <summary>
+        /// Adds a set to the superset with the given collection of members.  Only members that are in the
+        /// superset's Population will be added to the set.  This is the slowest way to populate a set with
+        /// members.
+        /// </summary>
+        /// <param name="setName">The name to give to the set being added.</param>
+        /// <param name="members">A collection of members to add to the set.  Only members that are in the
+        /// supeset's Population will be added to the set.</param>
+        /// <returns></returns>
         public IMutableFastSet<T> AddSet(string setName, ICollection<T> members)
         {
             var set = FastSet<T>.Create(this, setName, members);
