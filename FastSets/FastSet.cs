@@ -389,7 +389,7 @@ namespace SkiDiveDev.FastSets
             {
                 _membership[i] = 0;
             }
-            _lastUsedIndexInMembership = 0;
+            _lastUsedIndexInMembership = codeForNoTrackedMembers;
             _numBitsUsedInLastElement = 0;
         }
 
