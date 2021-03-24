@@ -13,12 +13,6 @@ namespace SkiDiveDev.FastSets
 
 
         /// <summary>
-        /// Adds capacity to the set for when members are added to the SuperSet Population.
-        /// </summary>
-        IMutableFastSet<T> AddCapacity(int numberMembersToAdd);
-
-
-        /// <summary>
         /// Adds the given <paramref name="member"/> to the set.
         /// </summary>
         new IMutableFastSet<T> Add(T member);

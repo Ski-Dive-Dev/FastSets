@@ -675,12 +675,9 @@ namespace SkiDiveDev.FastSets
 
 
         /// <summary>
+        /// Adds capacity to the set for when members are added to the SuperSet Population.
         /// </summary>
-        /// <remarks>
-        /// This method could be optimized, but at this point in time, doesn't seem necessary.
-        /// </remarks>
-        /// <param name="numMembersToAdd"></param>
-        public IMutableFastSet<T> AddCapacity(int numMembersToAdd)
+        private IMutableFastSet<T> AddCapacity(int numMembersToAdd)
         {
             if (numMembersToAdd > 0)
             {
@@ -688,6 +685,8 @@ namespace SkiDiveDev.FastSets
 
                 _numBitsUsedInLastElement = (newTotalCapacity - 1) % numBitsInMembershipElement + 1;
 
+                // If newTotalCapacity == 0, _lastUsedIndexInMembership will = -1, which is the
+                // codeForNoTrackedMembers.
                 _lastUsedIndexInMembership =
                     IntegerCeilingDivision(newTotalCapacity, numBitsInMembershipElement) - 1;
 
