@@ -20,7 +20,8 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         private ulong[] _membership;
 
-        private int _lastUsedIndexInMembership = -1;
+        private const int codeForNoTrackedMembers = -1;
+        private int _lastUsedIndexInMembership = codeForNoTrackedMembers;
         private int _numBitsUsedInLastElement = 0;
         private readonly ISuperSet<T> _superSet;
 
@@ -135,16 +136,34 @@ namespace SkiDiveDev.FastSets
 
         public IMutableFastSet<T> Add(ICollection<T> members)
         {
-            if (Name != "__activeMembers" && _superSet.Population.Intersect(members) == members)
-            {
-                throw new Exception(
-                    "Cannot add a member to a Set when that member does not exist in its enclosing SuperSet.");
-            }
-
             AddCapacity(_superSet.PopulationSize - NumTrackedMembers);
+
+            if (Name == "__activeMembers")
+            {
+                return AddToActiveMembers(members);
+            }
 
             // TODO: This loop could be removed with a simple mask of consecutive bits (must, however, accommodate
             // element boundary crossings):
+            foreach (var thisMember in members)
+            {
+                var memberIndex = GetIndexOfMember(thisMember);
+
+                if (memberIndex == -1)
+                {
+                    throw new Exception($"Cannot add a member to a Set when that member ({thisMember}) does not" +
+                        $" exist in its enclosing SuperSet.");
+                }
+
+                var (elementIndex, bitIndex) = GetElementAndBitIndices(memberIndex);
+                _membership[elementIndex] |= GetBitSetAtIndex(bitIndex);
+            }
+
+            return this;
+        }
+
+        private IMutableFastSet<T> AddToActiveMembers(ICollection<T> members)
+        {
             foreach (var thisMember in members)
             {
                 var memberIndex = GetIndexOfMember(thisMember);
@@ -156,14 +175,15 @@ namespace SkiDiveDev.FastSets
             return this;
         }
 
+
         public IMutableFastSet<T> Remove(T member)
         {
-            if (!_superSet.Contains(member))
+            var memberIndex = GetIndexOfMember(member);
+
+            if (memberIndex == -1)
             {
                 throw new Exception("Cannot remove a member from a Set that does not exist in the SuperSet.");
             }
-
-            var memberIndex = GetIndexOfMember(member);
 
             var (elementIndex, bitIndex) = GetElementAndBitIndices(memberIndex);
             _membership[elementIndex] &= GetBitClearedAtIndex(bitIndex);
@@ -173,13 +193,13 @@ namespace SkiDiveDev.FastSets
 
         bool ICollection<T>.Remove(T member)
         {
-            if (!_superSet.Contains(member))
+            var memberIndex = GetIndexOfMember(member);
+
+            if (memberIndex == -1)
             {
                 const bool falseToIndicateItemWasNotFoundInSet = false;
                 return falseToIndicateItemWasNotFoundInSet;
             }
-
-            var memberIndex = GetIndexOfMember(member);
 
             var (elementIndex, bitIndex) = GetElementAndBitIndices(memberIndex);
             _membership[elementIndex] &= GetBitClearedAtIndex(bitIndex);
@@ -235,7 +255,7 @@ namespace SkiDiveDev.FastSets
         /// Based on the 0-based <see cref="_lastUsedIndexInMembership"/>.  Will return <c>0</c> if both
         /// <see cref="_lastUsedIndexInMembership"/> and <see cref="_numBitsUsedInLastElement"/> are both <c>0</c>.
         /// </remarks>
-        private int NumElementsInUse => (_lastUsedIndexInMembership < 0)
+        private int NumElementsInUse => (_lastUsedIndexInMembership == codeForNoTrackedMembers)
             ? 0
             : (_lastUsedIndexInMembership + (_numBitsUsedInLastElement == 0 ? 0 : 1));
 
@@ -259,7 +279,7 @@ namespace SkiDiveDev.FastSets
         /// 4) <see cref="Count"/>: Number of members within the set.
         /// </para>
         /// </remarks>
-        private int NumTrackedMembers => (_lastUsedIndexInMembership < 0)
+        private int NumTrackedMembers => (_lastUsedIndexInMembership == codeForNoTrackedMembers)
             ? 0
             : _lastUsedIndexInMembership * numBitsInMembershipElement + _numBitsUsedInLastElement;
 
@@ -268,13 +288,14 @@ namespace SkiDiveDev.FastSets
 
         public bool Contains(T item)
         {
-            if (Name != "__activeMembers" && !_superSet.Population.Contains(item))
+            var indexOfItem = GetIndexOfMember(item);
+
+            if (Name != "__activeMembers" && indexOfItem == -1)
             {
                 throw new Exception("A Set cannot determine whether it contains an item when its enclosing" +
                     " SuperSet does not contain the item.");
             }
 
-            var indexOfItem = GetIndexOfMember(item);
             var (elementIndex, bitIndex) = GetElementAndBitIndices(indexOfItem);
             return ((_membership[elementIndex] & GetBitSetAtIndex(indexOfItem)) != 0);
         }
@@ -283,6 +304,9 @@ namespace SkiDiveDev.FastSets
         // TODO: Inject
         private string GenerateNewSetName(string @operator, string operandSetName)
         {
+            var nameIsAlreadyQuoted = (Name[0] == '\'');
+            var generatedName = Name;
+
             const int maxNumCharactersInName = 255;
             const int fixedNumCharactersToAddToName = 9;                        // "('' X '')".Length
             const int remainingAvailableNumChars = maxNumCharactersInName - fixedNumCharactersToAddToName;
@@ -292,16 +316,18 @@ namespace SkiDiveDev.FastSets
                 const int numCharactersInEllipsis = 1;                          // "…".Length
                 numCharactersToTruncate += numCharactersInEllipsis;
                 var truncatedOriginalName = Name.Substring(0, Name.Length - numCharactersToTruncate);
-                return $"('…{truncatedOriginalName}' {@operator} '{operandSetName}')";
+                generatedName = $"…{truncatedOriginalName}";
             }
-            else
-            {
-                return $"('{Name}' {@operator} '{operandSetName}')";
-            }
+
+            var quote = nameIsAlreadyQuoted
+                ? ""
+                : "'";
+
+            return $"({quote}{generatedName}{quote} {@operator} '{operandSetName}')";
         }
 
 
-        private bool MembershipIsEmpty => _lastUsedIndexInMembership < 0;
+        private bool MembershipIsEmpty => (_lastUsedIndexInMembership == codeForNoTrackedMembers);
 
 
         /// <summary>
