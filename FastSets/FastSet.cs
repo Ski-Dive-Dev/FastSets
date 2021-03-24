@@ -20,6 +20,7 @@ namespace SkiDiveDev.FastSets
         /// </summary>
         private ulong[] _membership;
 
+        private const ulong allBitsSetInElement = ulong.MaxValue;
         private const int codeForNoTrackedMembers = -1;
         private int _lastUsedIndexInMembership = codeForNoTrackedMembers;
         private int _numBitsUsedInLastElement = 0;
@@ -345,7 +346,7 @@ namespace SkiDiveDev.FastSets
 
             for (var i = 0; i < _lastUsedIndexInMembership; i++)
             {
-                if ((_membership[i] & activeMembers[i]) != ulong.MaxValue)
+                if ((_membership[i] & activeMembers[i]) != allBitsSetInElement)
                 {
                     return false;
                 }
@@ -745,8 +746,8 @@ namespace SkiDiveDev.FastSets
 
         private ulong GetLsbMask(int numLeastSignificantBitsToMask) =>
             (numLeastSignificantBitsToMask == numBitsInMembershipElement)
-            ? ulong.MaxValue
-            : ~(ulong.MaxValue << numLeastSignificantBitsToMask);
+            ? allBitsSetInElement
+            : ~(allBitsSetInElement << numLeastSignificantBitsToMask);
 
 
         bool ISet<T>.Add(T item) => throw new NotImplementedException();

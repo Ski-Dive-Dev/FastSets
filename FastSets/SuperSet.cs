@@ -9,6 +9,7 @@ namespace SkiDiveDev.FastSets
     public class SuperSet<T> : ISuperSet<T>, IReadOnlyFastSet<T>, ISet<T> where T : IEquatable<T>
     {
         const int numBitsInMembershipElement = 64;
+        const ulong allBitsSetInElement = ulong.MaxValue;
         readonly IMutableFastSet<T> _activeMembers;
         readonly IDictionary<string, IMutableFastSet<T>> _sets = new Dictionary<string, IMutableFastSet<T>>();
 
@@ -36,8 +37,7 @@ namespace SkiDiveDev.FastSets
 
             for (var i = 0; i < numElementsInUse - 1; i++)
             {
-                const ulong allBitsSet = ulong.MaxValue;
-                arrayOfBits[i] = allBitsSet;
+                arrayOfBits[i] = allBitsSetInElement;
             }
 
             var numMembersInLastElement = numBitsToSet % numBitsInMembershipElement;
