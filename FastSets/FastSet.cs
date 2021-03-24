@@ -77,16 +77,7 @@ namespace SkiDiveDev.FastSets
 
         private void InitMembership(ulong[] presetMembership)
         {
-            var minNumMembershipElementsRequired =
-                IntegerCeilingDivision(_superSet.PopulationSize, numBitsInMembershipElement);
-
-            if (presetMembership != null && presetMembership.Length < minNumMembershipElementsRequired)
-            {
-                throw new Exception(
-                    $"The provided {nameof(presetMembership)} does not contain enough members for this SuperSet.");
-            }
-
-            _membership = presetMembership ?? new ulong[minNumMembershipElementsRequired];
+            _membership = presetMembership;
             AddCapacity(_superSet.PopulationSize - NumTrackedMembers);
         }
 
