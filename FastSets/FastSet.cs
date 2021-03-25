@@ -426,7 +426,7 @@ namespace SkiDiveDev.FastSets
 
             var intersectedMembers = new ulong[LengthOfMembership_OrZero];
 
-            for (var i = 0; i < _membership.Length; i++)
+            for (var i = 0; i < _lastUsedIndexInMembership; i++)
             {
                 intersectedMembers[i] = _membership[i] & activeMembers[i] & sourceMembership[i];
             }
@@ -476,7 +476,7 @@ namespace SkiDiveDev.FastSets
 
             var unionedMembers = new ulong[LengthOfMembership_OrZero];
 
-            for (var i = 0; i < _membership.Length; i++)
+            for (var i = 0; i < _lastUsedIndexInMembership; i++)
             {
                 unionedMembers[i] = _membership[i] & activeMembers[i] | sourceMembership[i];
             }
@@ -751,8 +751,8 @@ namespace SkiDiveDev.FastSets
 
         private ulong GetLsbMask(int numLeastSignificantBitsToMask) =>
             (numLeastSignificantBitsToMask == numBitsInMembershipElement)
-            ? allBitsSetInElement
-            : ~(allBitsSetInElement << numLeastSignificantBitsToMask);
+                ? allBitsSetInElement
+                : ~(allBitsSetInElement << numLeastSignificantBitsToMask);
 
 
         bool ISet<T>.Add(T item) => throw new NotImplementedException();
