@@ -698,12 +698,16 @@ namespace SkiDiveDev.FastSets
         /// <returns><see langword="true"/> if <see cref="_membership"/> was expanded.</returns>
         private bool ConditionallyExpandMembershipSize()
         {
-            Debug.Assert(_membership != null, $"{nameof(_membership)} should never be null.");
+            const double arrayGrowthFactor = 1.2;
+            var newArraySize = (int)((_lastUsedIndexInMembership + 1) * arrayGrowthFactor);
 
-            if (_lastUsedIndexInMembership >= _membership.Length)
+            if (_membership == null)
             {
-                const double arrayGrowthFactor = 1.2;
-                var newArraySize = (int)((_lastUsedIndexInMembership + 1) * arrayGrowthFactor);
+                _membership = new ulong[newArraySize];
+                return true;
+            }
+            else if (_lastUsedIndexInMembership >= _membership.Length)
+            {
                 Array.Resize(ref _membership, newArraySize);
                 return true;
             }
