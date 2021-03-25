@@ -378,7 +378,7 @@ namespace SkiDiveDev.FastSets
 
         public void Clear()
         {
-            for (var i = 0; i < _membership.Length; i++)
+            for (var i = 0; i < LengthOfMembership_OrZero; i++)
             {
                 _membership[i] = 0;
             }
@@ -591,12 +591,15 @@ namespace SkiDiveDev.FastSets
         {
             var activeElements = new ulong[NumElementsInUse];
 
-            Array.Copy(
-                sourceArray: _membership,
-                sourceIndex: 0,
-                destinationArray: activeElements,
-                destinationIndex: 0,
-                length: NumElementsInUse);
+            if (!MembershipIsEmpty)
+            {
+                Array.Copy(
+                    sourceArray: _membership,
+                    sourceIndex: 0,
+                    destinationArray: activeElements,
+                    destinationIndex: 0,
+                    length: NumElementsInUse);
+            }
             return activeElements;
         }
 
